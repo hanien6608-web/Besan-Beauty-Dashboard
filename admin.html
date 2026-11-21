@@ -3059,11 +3059,12 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                                     <button class="btn-burgundy" onclick="deleteFullChat('hub')"><i class="bi bi-trash3"></i> مسح المحادثة</button>
                                 </div>
                             </div>
-                            <div id="hub-chat-messages" class="hub-chat-messages"></div>
-                            <div id="typing-indicator-hub" class="typing-indicator-chat">
-                                <div class="typing-dots"><span></span><span></span><span></span></div>
-                                <span>العميل يكتب الآن...</span>
+                            <div id="hub-order-bar" style="display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(246,0,111,.15);flex-wrap:wrap;">
+                                <label for="hub-order-select" style="font-size:.8rem;font-weight:700;">الرد على طلب:</label>
+                                <select id="hub-order-select" onchange="hubPickOrder(this.value)" style="flex:1;min-width:150px;padding:6px;border-radius:10px;border:1px solid rgba(246,0,111,.3);"></select>
+                                <button class="btn-burgundy" type="button" onclick="issueOrderCode(slots.hub.orderId)" title="إصدار كود دخول جديد لهذا الطلب"><i class="bi bi-key"></i> كود جديد</button>
                             </div>
+                            <div id="hub-chat-messages" class="hub-chat-messages"></div>
                             <div class="hub-input-area">
                                 <input type="text" id="hub-admin-input" placeholder="اكتبي ردك هنا..." onkeypress="if(event.key==='Enter') sendReply('hub')">
                                 <button class="send-btn" onclick="sendReply('hub')">إرسال <i class="bi bi-send-fill"></i></button>
@@ -3362,13 +3363,10 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                 <div class="card chat-container">
                     <div class="chat-header-container">
                         <h3 id="chat-header" style="margin:0;">شات الدعم</h3>
-                        <button class="btn-burgundy" onclick="deleteFullChat('order')"><i class="bi bi-trash3"></i> مسح المحادثة نهائياً</button>
+                        <span style="display:flex;gap:6px;"><button class="btn-burgundy" type="button" onclick="issueOrderCode(slots.order.orderId)"><i class="bi bi-key"></i> كود جديد</button>
+                        <button class="btn-burgundy" onclick="deleteFullChat('order')"><i class="bi bi-trash3"></i> مسح المحادثة نهائياً</button></span>
                     </div>
                     <div id="chat-body" style="display: flex; flex-direction: column;"></div>
-                    <div id="typing-indicator-admin" class="typing-indicator-chat">
-                        <div class="typing-dots"><span></span><span></span><span></span></div>
-                        <span>العميل يكتب الآن...</span>
-                    </div>
                     <div class="input-area">
                         <input type="text" id="admin-input" placeholder="اكتب ردك هنا..." onkeypress="if(event.key==='Enter') sendReply('order')">
                         <button class="send-btn" onclick="sendReply('order')">إرسال <i class="bi bi-send-fill"></i></button>
@@ -3575,10 +3573,9 @@ window.pendingChatPhones = [];
 const msgCache = new Map();        // phone -> [{sender,text,created_at}]
 const recentKeys = new Map();      // لمنع تكرار الرسالة (بث + قاعدة بيانات) للرسائل القديمة بدون معرّف
 const seenCids = new Set();        // معرّفات الرسائل اللي اتعرضت (منع التكرار بدقة)
-const chatChannels = new Map();    // phone -> {ch, slots:Set}
 const slots = {
-    hub:   { phone: null, box: 'hub-chat-messages', typing: 'typing-indicator-hub',   input: 'hub-admin-input', timer: null },
-    order: { phone: null, box: 'chat-body',          typing: 'typing-indicator-admin', input: 'admin-input',     timer: null }
+    hub:   { phone: null, orderId: null, box: 'hub-chat-messages', typing: 'typing-indicator-hub',   input: 'hub-admin-input', timer: null },
+    order: { phone: null, orderId: null, box: 'chat-body',          typing: 'typing-indicator-admin', input: 'admin-input',     timer: null }
 };
 
 const orderSound = new Audio(APP_CONFIG.SOUND_ORDER);
@@ -3635,8 +3632,7 @@ async function loadAllData() {
     try {
         const [orders, msgs] = await Promise.all([
             fetchAll('orders', '*', 'created_at', false),
-            fetchAll('messages', 'customer_phone,sender,text,created_at,client_id', 'created_at', true)
-                .catch(() => fetchAll('messages', 'customer_phone,sender,text,created_at', 'created_at', true))
+            fetchAll('messages', 'customer_phone,sender,text,created_at,client_id,order_id', 'created_at', true)
         ]);
         allOrders = orders;
         customersMap = null;
@@ -3644,7 +3640,7 @@ async function loadAllData() {
         msgs.forEach(m => {
             const p = cleanPhone(m.customer_phone);
             if (!msgCache.has(p)) msgCache.set(p, []);
-            msgCache.get(p).push({ sender: m.sender, text: m.text, created_at: m.created_at, cid: m.client_id });
+            msgCache.get(p).push({ sender: m.sender, text: m.text, created_at: m.created_at, cid: m.client_id, order_id: m.order_id });
             if (m.client_id) seenCids.add(m.client_id);
         });
         mergeAdminOutboxIntoCache();
@@ -3704,9 +3700,11 @@ function bubbleEl(m) {
     const time = document.createElement('small');
     time.style.cssText = 'display:block;font-size:.65rem;opacity:.6;margin-top:3px;';
     time.textContent = fmtClock(m.created_at);
+    if (m.tag && m.order_id) { const tg = document.createElement('small'); tg.style.cssText = 'display:inline-block;font-size:.65rem;font-weight:700;background:rgba(246,0,111,.12);border-radius:8px;padding:1px 6px;margin-bottom:3px;'; tg.textContent = 'طلب #' + m.order_id; d.append(tg); }
     d.append(t, time);
     return d;
 }
+function slotShows(s, m) { return !s.orderId || String(m.order_id) === String(s.orderId); }
 
 function appendBubble(boxId, m) {
     const box = document.getElementById(boxId);
@@ -3726,10 +3724,10 @@ function renderThread(slot) {
     const box = document.getElementById(s.box);
     if (!box) return;
     box.innerHTML = '';
-    const msgs = msgCache.get(s.phone) || [];
+    const msgs = (msgCache.get(s.phone) || []).filter(m => slotShows(s, m));
     if (!msgs.length) { box.innerHTML = placeholderHTML('لا توجد رسائل بعد'); return; }
     const frag = document.createDocumentFragment();
-    msgs.forEach(m => frag.appendChild(bubbleEl(m)));
+    msgs.forEach(m => frag.appendChild(bubbleEl(Object.assign({}, m, { tag: !s.orderId }))));
     box.appendChild(frag);
     box.scrollTop = box.scrollHeight;
 }
@@ -3751,7 +3749,7 @@ function scheduleUI(withTable) {
     });
 }
 
-function addMessage(phone, sender, text, createdAt, silent, cid, pending) {
+function addMessage(phone, sender, text, createdAt, silent, cid, pending, orderId) {
     phone = cleanPhone(phone);
     if (!phone || !text) return false;
     if (cid) {
@@ -3778,17 +3776,16 @@ function addMessage(phone, sender, text, createdAt, silent, cid, pending) {
         recentKeys.set(key, marks);
     }
 
-    const msg = { sender, text, created_at: createdAt || new Date().toISOString(), cid, pending: !!pending };
+    const msg = { sender, text, created_at: createdAt || new Date().toISOString(), cid, pending: !!pending, order_id: orderId };
     if (!msgCache.has(phone)) msgCache.set(phone, []);
     msgCache.get(phone).push(msg);
 
     const wasPending = window.pendingChatPhones.includes(phone);
     let watching = false;
     Object.keys(slots).forEach(k => {
-        if (slots[k].phone === phone) {
-            appendBubble(slots[k].box, msg);
+        if (slots[k].phone === phone && slotShows(slots[k], msg)) {
+            appendBubble(slots[k].box, Object.assign({}, msg, { tag: !slots[k].orderId }));
             if (isSlotVisible(k)) watching = true;
-            if (sender === 'user') hideTyping(k);
         }
     });
     recomputePending();
@@ -3802,53 +3799,15 @@ function addMessage(phone, sender, text, createdAt, silent, cid, pending) {
     return true;
 }
 
-function showTyping(phone) {
-    Object.keys(slots).forEach(k => {
-        const s = slots[k];
-        if (s.phone !== phone) return;
-        const ind = document.getElementById(s.typing);
-        if (!ind) return;
-        ind.style.display = 'flex';
-        const box = document.getElementById(s.box);
-        if (box) box.scrollTop = box.scrollHeight;
-        clearTimeout(s.timer);
-        s.timer = setTimeout(() => hideTyping(k), 2000);
-    });
-}
-function hideTyping(slot) {
-    const ind = document.getElementById(slots[slot].typing);
-    if (ind) ind.style.display = 'none';
-}
+function showTyping() {}
+function hideTyping() {}
 
-function bindChat(slot, phone) {
+function bindChat(slot, phone, orderId) {
     const s = slots[slot];
-    phone = cleanPhone(phone);
-    if (s.phone === phone) return;
-    unbindChat(slot);
-    s.phone = phone;
-    let e = chatChannels.get(phone);
-    if (!e) {
-        const ch = _supabase.channel('support_chat_' + phone, { config: { broadcast: { self: true } } });
-        ch.on('broadcast', { event: 'msg' }, p => { const d = p.payload || {}; addMessage(phone, d.sender || 'user', d.text, null, false, d.cid); })
-          .on('broadcast', { event: 'typing' }, p => { if (p.payload && p.payload.sender === 'user') showTyping(phone); })
-          .on('broadcast', { event: 'delete_chat' }, () => clearChatLocal(phone))
-          .subscribe();
-        e = { ch, slots: new Set() };
-        chatChannels.set(phone, e);
-    }
-    e.slots.add(slot);
+    s.phone = cleanPhone(phone);
+    s.orderId = orderId ? String(orderId) : null;
 }
-
-function unbindChat(slot) {
-    const s = slots[slot];
-    if (!s.phone) return;
-    const e = chatChannels.get(s.phone);
-    if (e) {
-        e.slots.delete(slot);
-        if (!e.slots.size) { _supabase.removeChannel(e.ch); chatChannels.delete(s.phone); }
-    }
-    s.phone = null;
-}
+function unbindChat(slot) { const s = slots[slot]; s.phone = null; s.orderId = null; }
 
 async function sendReply(slot) {
     slot = slot || 'order';
@@ -3856,19 +3815,15 @@ async function sendReply(slot) {
     const input = document.getElementById(s.input);
     const text = input.value.trim();
     if (!text || !s.phone) return;
-    const phone = s.phone;
+    if (!s.orderId) { alert('اختاري الطلب اللي هترُدي عليه الأول (من قائمة "الرد على طلب"). كل رد بيروح لمحادثة طلب واحد بس.'); return; }
+    const phone = s.phone, orderId = s.orderId;
     input.value = '';
     input.focus();
 
     const cid = newMsgId();
-    const e = chatChannels.get(phone);
-    if (e) {
-        e.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: false, sender: 'admin' } });
-        e.ch.send({ type: 'broadcast', event: 'msg', payload: { text, sender: 'admin', msgId: cid, cid } });
-    }
-    addMessage(phone, 'admin', text, null, true, cid, true);   // يظهر فوراً (باهت لحد ما يتأكد إنه اتحفظ)
+    addMessage(phone, 'admin', text, null, true, cid, true, orderId);   // يظهر فوراً (باهت لحد ما يتأكد إنه اتحفظ)
 
-    const ob = getAdminOutbox(); ob.push({ cid, phone, text }); setAdminOutbox(ob);
+    const ob = getAdminOutbox(); ob.push({ cid, phone, text, order_id: orderId }); setAdminOutbox(ob);
     await flushAdminOutbox();
 }
 
@@ -3889,7 +3844,7 @@ function mergeAdminOutboxIntoCache() {
         if (seenCids.has(i.cid)) return;
         seenCids.add(i.cid);
         if (!msgCache.has(p)) msgCache.set(p, []);
-        msgCache.get(p).push({ sender: 'admin', text: i.text, created_at: new Date().toISOString(), cid: i.cid, pending: true });
+        msgCache.get(p).push({ sender: 'admin', text: i.text, created_at: new Date().toISOString(), cid: i.cid, pending: true, order_id: i.order_id });
     });
 }
 let _adminFlushing = false, _adminFlushTimer = null, _adminAlerted = false;
@@ -3898,10 +3853,8 @@ async function flushAdminOutbox() {
     _adminFlushing = true;
     try {
         for (const item of getAdminOutbox()) {
-            let { error } = await _supabase.from('messages').insert([{ customer_phone: item.phone, sender: 'admin', text: item.text, client_id: item.cid }]);
-            if (error && /client_id/i.test(error.message || '')) {
-                ({ error } = await _supabase.from('messages').insert([{ customer_phone: item.phone, sender: 'admin', text: item.text }]));
-            }
+            if (!item.order_id) { setAdminOutbox(getAdminOutbox().filter(i => i.cid !== item.cid)); continue; }   // رسالة قديمة بدون طلب محدد: ما نخمّنش وجهتها
+            let { error } = await _supabase.from('messages').insert([{ customer_phone: item.phone, sender: 'admin', text: item.text, client_id: item.cid, order_id: Number(item.order_id) }]);
             if (!error || error.code === '23505') {      // اتحفظت (أو كانت محفوظة قبل كده)
                 setAdminOutbox(getAdminOutbox().filter(i => i.cid !== item.cid));
                 markAdminSent(item.cid);
@@ -3930,12 +3883,11 @@ async function deleteFullChat(slot) {
     const s = slots[slot || 'order'];
     const phone = s.phone;
     if (!phone) return;
-    if (!confirm('هل أنتِ متأكدة؟ سيتم مسح الشات نهائياً من عندك ومن عند العميل فوراً.')) return;
-    const e = chatChannels.get(phone);
-    if (e) e.ch.send({ type: 'broadcast', event: 'delete_chat', payload: {} });
-    const { error } = await _supabase.from('messages').delete().eq('customer_phone', phone);
+    if (!s.orderId) { alert('اختاري الطلب اللي عايزة تمسحي محادثته الأول.'); return; }
+    if (!confirm('هل أنتِ متأكدة؟ سيتم مسح محادثة الطلب #' + s.orderId + ' نهائياً.')) return;
+    const { error } = await _supabase.from('messages').delete().eq('order_id', Number(s.orderId));
     if (error) return alert('خطأ أثناء الحذف: ' + error.message);
-    clearChatLocal(phone);
+    await loadAllData();
 }
 
 /* =====================================================================
@@ -4014,7 +3966,10 @@ function setChatFilter(f, btn) {
 function openHubChat(phone) {
     const c = getCustomers().get(phone);
     if (!c) return;
-    bindChat('hub', phone);
+    bindChat('hub', phone, c.orders.length === 1 ? c.orders[0].id : null);
+    { const sel = document.getElementById('hub-order-select'); const ords = c.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      sel.innerHTML = '<option value="">اختاري الطلب...</option>' + ords.map(o => `<option value="${esc(o.id)}">#${esc(o.id)} - ${esc(formatEgyptTime(o.created_at))}</option>`).join('');
+      sel.value = slots.hub.orderId || ''; }
     document.getElementById('chat-placeholder').style.display = 'none';
     document.getElementById('chat-active-container').style.display = 'flex';
     document.getElementById('chat-hub-wrapper').classList.add('chat-open');
@@ -4022,12 +3977,19 @@ function openHubChat(phone) {
     setText('active-chat-phone-sub', phone);
     setText('active-chat-avatar', (c.name || '؟').trim().charAt(0) || '؟');
     renderThread('hub');
-    hideTyping('hub');
     renderChatList();
     const inp = document.getElementById('hub-admin-input');
     if (inp && window.innerWidth > 768) inp.focus();
 }
 
+function hubPickOrder(v) { slots.hub.orderId = v ? String(v) : null; renderThread('hub'); }
+async function issueOrderCode(orderId) {
+    if (!orderId) { alert('اختاري الطلب الأول.'); return; }
+    if (!confirm('إصدار كود جديد للطلب #' + orderId + '؟\nاتأكدي الأول إن صاحبة الطلب هي اللي بتكلمك على واتساب من رقمها المسجّل (مش بس إنها عارفة تفاصيل الطلب).\nالكود القديم هيبطل وكل الأجهزة المسجلة دخول هتخرج.')) return;
+    const { data, error } = await _supabase.rpc('admin_issue_code', { p_order: Number(orderId) });
+    if (error || !data) return alert('تعذّر إصدار الكود: ' + (error ? error.message : ''));
+    prompt('الكود الجديد للطلب #' + orderId + ' (يظهر مرة واحدة، ابعتيه للعميلة على واتساب):', data);
+}
 function closeHubChat() {
     unbindChat('hub');
     document.getElementById('chat-active-container').style.display = 'none';
@@ -4135,9 +4097,8 @@ function selectOrder(orderId) {
     if (sel) sel.value = order.status;
     loadReceiptImage(order);
     document.getElementById('chat-header').innerText = 'شات مع العميل: ' + order.customer_name;
-    bindChat('order', order.customer_phone);
+    bindChat('order', order.customer_phone, order.id);
     renderThread('order');
-    hideTyping('order');
     const _d = document.getElementById('details-chat-section');
     if (_d) requestAnimationFrame(() => _d.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 }
@@ -4223,7 +4184,7 @@ function remindCustomerWA(orderId) {
 async function remindCustomerChat(orderId) {
     const o = allOrders.find(x => String(x.id) === String(orderId)); if (!o) return;
     if (!confirm(`إرسال تذكير في شات العميلة (${o.customer_name}) بخصوص الطلب #${o.id}؟`)) return;
-    const { error } = await _supabase.from('messages').insert([{ customer_phone: o.customer_phone, sender: 'admin', text: reminderText(o).slice(0, 2000) }]);
+    const { error } = await _supabase.from('messages').insert([{ customer_phone: o.customer_phone, sender: 'admin', text: reminderText(o).slice(0, 2000), order_id: o.id }]);
     if (error) return alert('تعذّر إرسال التذكير: ' + error.message);
     alert('تم إرسال التذكير في الشات ✅');
 }
@@ -4487,7 +4448,7 @@ function startRealtime() {
     _supabase.channel('global-messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
         if (payload.eventType === 'INSERT') {
             const m = payload.new;
-            addMessage(m.customer_phone, m.sender, m.text, m.created_at, false, m.client_id);
+            addMessage(m.customer_phone, m.sender, m.text, m.created_at, false, m.client_id, false, m.order_id);
         } else if (payload.eventType === 'DELETE') {
             // الحذف لا يحمل رقم العميل، فنعيد المزامنة بعد لحظة
             clearTimeout(reloadTimer);
@@ -4533,20 +4494,6 @@ async function initApp() {
     try {
         fp = flatpickr('#date-filter', { dateFormat: 'Y-m-d', theme: 'dark', allowInput: true, clickOpens: false });
     } catch (e) { console.warn('flatpickr:', e); }
-
-    // كتابة الأدمن -> "يكتب الآن" عند العميل
-    let lastTypingSent = 0;
-    Object.keys(slots).forEach(k => {
-        const inp = document.getElementById(slots[k].input);
-        if (!inp) return;
-        inp.addEventListener('input', () => {
-            const e = slots[k].phone && chatChannels.get(slots[k].phone);
-            if (e && Date.now() - lastTypingSent > 1500) {
-                lastTypingSent = Date.now();
-                e.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: true, sender: 'admin' } });
-            }
-        });
-    });
 
     // البحث العلوي: Enter يفتح جدول الطلبات بنتيجة البحث
     const gs = document.getElementById('global-search');
@@ -5166,14 +5113,6 @@ async function applyBulkDeleteChats() {
     try {
         const { error } = await _supabase.from('messages').delete().in('customer_phone', selectedPhones);
         if (error) throw error;
-
-        selectedPhones.forEach(phone => {
-            const channel = _supabase.channel(`support_chat_${phone}`);
-            channel.subscribe(() => {
-                channel.send({ type: 'broadcast', event: 'delete_chat', payload: {} });
-                _supabase.removeChannel(channel);
-            });
-        });
 
         alert("تم مسح المحادثات المحددة بنجاح! ✨");
         loadAllData(); 
