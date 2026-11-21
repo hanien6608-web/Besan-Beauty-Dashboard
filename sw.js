@@ -1,5 +1,5 @@
 // Service Worker — Besan Beauty (لوحة الإدارة)
-const CACHE_NAME = 'besan-admin-shell-v5';
+const CACHE_NAME = 'besan-admin-shell-v6';
 const APP_START = './admin.html';
 const SHELL_FILES = [
   './',
@@ -70,7 +70,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(data.title || 'Besan Beauty - الإدارة', {
     body: data.body || 'لديكِ طلب أو رسالة جديدة ✨',
     icon: './logo-192.png',
-    badge: './logo-192.png',
+    badge: './badge-96.png',
     tag: data.tag || ('besan-admin-' + Date.now()),
     renotify: true,
     data: { url: data.url || APP_START, type: data.type || '', phone: data.phone || '', orderId: data.orderId || null }
