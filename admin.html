@@ -3964,7 +3964,7 @@ async function sendReply(slot) {
     input.value = '';
     input.focus();
 
-    try { _supabase.rpc('admin_notify', { p_order: Number(orderId), p_event: 'typing', p_payload: { typing: false, sender: 'admin' } }); } catch (e) {}
+    try { _supabase.rpc('admin_notify', { p_order: Number(orderId), p_event: 'typing', p_payload: { typing: false, sender: 'admin' } }).then(() => {}, () => {}); } catch (e) {}
     const cid = newMsgId();
     addMessage(phone, 'admin', text, null, true, cid, true, orderId);   // يظهر فوراً (باهت لحد ما يتأكد إنه اتحفظ)
 
@@ -4684,7 +4684,7 @@ async function initApp() {
             const e = slots[k].orderId && rtChans.get(slots[k].orderId);
             if (e && Date.now() - lastTypingSent > 1500) {
                 lastTypingSent = Date.now();
-                _supabase.rpc('admin_notify', { p_order: Number(slots[k].orderId), p_event: 'typing', p_payload: { typing: true, sender: 'admin' } });
+                _supabase.rpc('admin_notify', { p_order: Number(slots[k].orderId), p_event: 'typing', p_payload: { typing: true, sender: 'admin' } }).then(() => {}, () => {});
             }
         });
     });
