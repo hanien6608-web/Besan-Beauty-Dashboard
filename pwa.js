@@ -5,12 +5,12 @@
   const isAdmin = /admin\.html/i.test(location.pathname);
   let installEvent = null;
   let card;
-  const dismissedKey = 'besanInstallCardDismissed';
+  let dismissedThisVisit = false; // dismissal lasts only until the page is reloaded or reopened
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isSafariIOS = isIOS && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
 
   async function showCard() {
-    if (card || document.getElementById('besan-install-card') || sessionStorage.getItem(dismissedKey)) return;
+    if (card || document.getElementById('besan-install-card') || dismissedThisVisit) return;
     if (isStandalone && isAdmin) {
       try { const reg = await navigator.serviceWorker.ready; if (await reg.pushManager.getSubscription()) return; } catch (_) {}
     }
@@ -47,7 +47,7 @@
       #besan-install-card .bic-hint:empty{display:none}`;
     document.head.appendChild(style);
     document.body.appendChild(card);
-    card.querySelector('.bic-close').addEventListener('click', () => { card.remove(); card = null; try { sessionStorage.setItem(dismissedKey, '1'); } catch (_) {} });
+    card.querySelector('.bic-close').addEventListener('click', () => { card.remove(); card = null; dismissedThisVisit = true; });
     const notifyButton = card.querySelector('.bic-notify');
     if (notifyButton) notifyButton.addEventListener('click', async () => {
       const hint = card.querySelector('.bic-hint');
@@ -82,10 +82,10 @@
     });
   }
 
-  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installEvent = event; showCard(); });
+  window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installEvent = event; setTimeout(showCard, 20000); });
   window.addEventListener('appinstalled', () => { if (card) card.remove(); card = null; });
   window.addEventListener('load', () => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
-    setTimeout(showCard, 1800);
+    setTimeout(showCard, 20000);
   });
 })();
