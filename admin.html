@@ -4125,7 +4125,7 @@ function renderChatList() {
     chatVisiblePhones = rows.map(r => r.c.phone);
     chatSelUpdate();
     list.innerHTML = rows.map(({ c, last, unread }) => {
-        const preview = last ? (last.sender === 'user' ? '' : 'أنتِ: ') + last.text : 'لا توجد رسائل بعد';
+        const preview = last ? (last.sender === 'user' ? '' : 'أنتِ: ') + adminMsgView(last.text, last.sender) : 'لا توجد رسائل بعد';
         const chk = chatSelectMode ? `<input type="checkbox" class="chat-sel" data-phone="${esc(c.phone)}" ${chatSelected.has(c.phone) ? 'checked' : ''} onclick="event.stopPropagation(); chatToggleOne(this)" style="width:20px;height:20px;flex:none;margin-inline-end:8px;">` : '';
         return `<div class="chat-item-card${c.phone === slots.hub.phone ? ' active' : ''}" onclick="${chatSelectMode ? `chatCardTap('${c.phone}')` : `openHubChat('${c.phone}')`}">${chk}
             <div class="customer-avatar-circle">${esc((c.name || '؟').trim().charAt(0) || '؟')}</div>
@@ -4755,7 +4755,22 @@ async function initApp() {
                 if (o) { showSection('users-management-section'); openHubChat(d.phone); }
             } else if (d.type === 'order' && d.orderId) goToOrder(d.orderId);
         });
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js').then(reg => {
+            // تحديث تلقائي: لما التطبيق يرجع للشاشة نشيّك على نسخة جديدة، ولو اتفعّلت نسخة جديدة نعيد التحميل مرة واحدة (من غير ما نمسح الدخول)
+            const chk = () => { try { reg.update(); } catch (e) {} };
+            document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') chk(); });
+            setInterval(chk, 15 * 60 * 1000);
+        }).catch(() => {});
+        if (navigator.serviceWorker.controller) {
+            let reloaded = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (reloaded) return; reloaded = true;
+                const ae = document.activeElement;
+                const typing = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && String(ae.value || '').trim() !== '';
+                if (typing) return;   // مش هنقاطع حد بيكتب
+                location.reload();
+            });
+        }
     }
 }
 
