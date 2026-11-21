@@ -4335,7 +4335,9 @@ function payStateHTML(o) {
     if (o.status === 'awaiting_payment') {
         if (o.receipt_path) return `<div class="pay-state st-review"><i class="bi bi-receipt"></i> إيصال مرفوع — محتاج مراجعتك وتأكيدك</div>`;
         // عرض مختصر للأدمن: التفاصيل الكاملة موجودة في بيانات الطلب، والرسالة الكاملة متخزنة وبتوصل للعميلة زي ما هي
-        return `<div class="pay-state st-wait"><i class="bi bi-hourglass-split"></i> لم يتم رفع الإيصال</div>`;
+        const tsc = o.created_at ? Date.parse(o.created_at) : NaN;
+        const cd = isNaN(tsc) ? '' : `<div class="pam-timer" style="margin:0 0 8px"><span>مهلة الـ72 ساعة (للتذكير)</span><b class="pay-countdown" data-end="${tsc + 72 * 3600 * 1000}">--:--:--</b></div>`;
+        return `<div class="pay-state st-wait"><i class="bi bi-hourglass-split"></i> لم يتم رفع الإيصال</div>${cd}`;
     }
     if (o.status === 'expired') return `<div class="pay-state st-exp"><i class="bi bi-clock-history"></i> انتهت المهلة بدون إيصال</div>`;
     if (o.status === 'rejected') return `<div class="pay-state st-rej"><i class="bi bi-x-octagon-fill"></i> تم رفض الإيصال${o.payment_note ? ' — ' + esc(o.payment_note) : ''}</div>`;
@@ -4381,6 +4383,20 @@ async function remindCustomerChat(orderId) {
     alert('تم إرسال التذكير في الشات ✅');
 }
 
+// عدّاد الـ72 ساعة (عرض فقط، من وقت إنشاء الطلب): بيتحدّث كل ثانية لحد الصفر، ومش بيغيّر حالة الطلب ولا بيبعت حاجة
+(function () {
+    function tick() {
+        document.querySelectorAll('.pay-countdown[data-end]').forEach(el => {
+            const end = Number(el.dataset.end); if (!isFinite(end)) return;
+            const left = Math.max(0, end - Date.now()), sec = Math.floor(left / 1000);
+            const p = n => String(n).padStart(2, '0');
+            el.textContent = p(Math.floor(sec / 3600)) + ':' + p(Math.floor(sec % 3600 / 60)) + ':' + p(sec % 60);
+            const box = el.closest('.pam-timer'); if (box) box.classList.toggle('low', left < 6 * 3600 * 1000);
+        });
+    }
+    if (!window.__payCountdownTimer) window.__payCountdownTimer = setInterval(tick, 1000);
+    window.__payCountdownTick = tick;
+})();
 function paymentPanelHTML(o) {
     const relevant = o.deposit_amount != null || o.receipt_path || ['awaiting_payment', 'expired', 'rejected'].includes(o.status);
     if (!relevant) return '';
