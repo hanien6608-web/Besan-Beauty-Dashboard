@@ -1,11 +1,15 @@
 // Service Worker — Besan Beauty (لوحة الإدارة)
-const CACHE_NAME = 'besan-admin-shell-v53';
+const CACHE_NAME = 'besan-admin-shell-v54';
 const APP_START = './admin.html';
 const SHELL_FILES = [
   './',
   './admin.html',
   './login.html',
   './config.js',
+  './vendor/supabase.js',
+  './vendor/flatpickr.min.js',
+  './vendor/flatpickr.min.css',
+  './vendor/flatpickr-dark.css',
   './pwa.js',
   './admin_manifest.json',
   './logo-192.png',
