@@ -3065,6 +3065,10 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                                 <button class="btn-burgundy" type="button" onclick="issueOrderCode(slots.hub.orderId)" title="إصدار كود دخول جديد لهذا الطلب"><i class="bi bi-key"></i> كود جديد</button>
                             </div>
                             <div id="hub-chat-messages" class="hub-chat-messages"></div>
+                            <div id="typing-indicator-hub" class="typing-indicator-chat">
+                                <div class="typing-dots"><span></span><span></span><span></span></div>
+                                <span>العميل يكتب الآن...</span>
+                            </div>
                             <div class="hub-input-area">
                                 <input type="text" id="hub-admin-input" placeholder="اكتبي ردك هنا..." onkeypress="if(event.key==='Enter') sendReply('hub')">
                                 <button class="send-btn" onclick="sendReply('hub')">إرسال <i class="bi bi-send-fill"></i></button>
@@ -3367,6 +3371,10 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                         <button class="btn-burgundy" onclick="deleteFullChat('order')"><i class="bi bi-trash3"></i> مسح المحادثة نهائياً</button></span>
                     </div>
                     <div id="chat-body" style="display: flex; flex-direction: column;"></div>
+                    <div id="typing-indicator-admin" class="typing-indicator-chat">
+                        <div class="typing-dots"><span></span><span></span><span></span></div>
+                        <span>العميل يكتب الآن...</span>
+                    </div>
                     <div class="input-area">
                         <input type="text" id="admin-input" placeholder="اكتب ردك هنا..." onkeypress="if(event.key==='Enter') sendReply('order')">
                         <button class="send-btn" onclick="sendReply('order')">إرسال <i class="bi bi-send-fill"></i></button>
@@ -3786,6 +3794,7 @@ function addMessage(phone, sender, text, createdAt, silent, cid, pending, orderI
         if (slots[k].phone === phone && slotShows(slots[k], msg)) {
             appendBubble(slots[k].box, Object.assign({}, msg, { tag: !slots[k].orderId }));
             if (isSlotVisible(k)) watching = true;
+            if (sender === 'user') hideTyping(k);
         }
     });
     recomputePending();
@@ -3799,15 +3808,45 @@ function addMessage(phone, sender, text, createdAt, silent, cid, pending, orderI
     return true;
 }
 
-function showTyping() {}
-function hideTyping() {}
+function showTyping(slot) {
+    const sl = slots[slot]; if (!sl) return;
+    const ind = document.getElementById(sl.typing); if (!ind) return;
+    ind.style.display = 'flex';
+    const box = document.getElementById(sl.box); if (box) box.scrollTop = box.scrollHeight;
+    clearTimeout(sl.timer);
+    sl.timer = setTimeout(() => hideTyping(slot), 2000);
+}
+function hideTyping(slot) {
+    const sl = slots[slot]; if (!sl) return;
+    const ind = document.getElementById(sl.typing);
+    if (ind) ind.style.display = 'none';
+}
 
+// قناة بث محمية لكل طلب (Realtime private): الأدمن بس أو عميل معاه توكن الطلب ده
+const rtChans = new Map();   // order_id -> { ch, slots:Set }
+function rtJoin(slot, orderId) {
+    let e = rtChans.get(orderId);
+    if (!e) {
+        const ch = _supabase.channel('order_chat_' + orderId, { config: { private: true, broadcast: { self: false } } });
+        e = { ch, slots: new Set() };
+        ch.on('broadcast', { event: 'typing' }, p => { if (p.payload && p.payload.sender === 'user') e.slots.forEach(k => showTyping(k)); }).subscribe();
+        rtChans.set(orderId, e);
+    }
+    e.slots.add(slot);
+}
+function rtLeave(slot, orderId) {
+    const e = rtChans.get(orderId); if (!e) return;
+    e.slots.delete(slot);
+    if (!e.slots.size) { try { _supabase.removeChannel(e.ch); } catch (x) {} rtChans.delete(orderId); }
+}
 function bindChat(slot, phone, orderId) {
     const s = slots[slot];
+    if (s.orderId) rtLeave(slot, s.orderId);
     s.phone = cleanPhone(phone);
     s.orderId = orderId ? String(orderId) : null;
+    if (s.orderId) rtJoin(slot, s.orderId);
 }
-function unbindChat(slot) { const s = slots[slot]; s.phone = null; s.orderId = null; }
+function unbindChat(slot) { const s = slots[slot]; if (s.orderId) rtLeave(slot, s.orderId); s.phone = null; s.orderId = null; hideTyping(slot); }
 
 async function sendReply(slot) {
     slot = slot || 'order';
@@ -3820,6 +3859,7 @@ async function sendReply(slot) {
     input.value = '';
     input.focus();
 
+    const re = rtChans.get(orderId); if (re) re.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: false, sender: 'admin' } });
     const cid = newMsgId();
     addMessage(phone, 'admin', text, null, true, cid, true, orderId);   // يظهر فوراً (باهت لحد ما يتأكد إنه اتحفظ)
 
@@ -3885,6 +3925,7 @@ async function deleteFullChat(slot) {
     if (!phone) return;
     if (!s.orderId) { alert('اختاري الطلب اللي عايزة تمسحي محادثته الأول.'); return; }
     if (!confirm('هل أنتِ متأكدة؟ سيتم مسح محادثة الطلب #' + s.orderId + ' نهائياً.')) return;
+    const de = rtChans.get(s.orderId); if (de) de.ch.send({ type: 'broadcast', event: 'delete_chat', payload: {} });
     const { error } = await _supabase.from('messages').delete().eq('order_id', Number(s.orderId));
     if (error) return alert('خطأ أثناء الحذف: ' + error.message);
     await loadAllData();
@@ -3982,7 +4023,7 @@ function openHubChat(phone) {
     if (inp && window.innerWidth > 768) inp.focus();
 }
 
-function hubPickOrder(v) { slots.hub.orderId = v ? String(v) : null; renderThread('hub'); }
+function hubPickOrder(v) { bindChat('hub', slots.hub.phone, v || null); renderThread('hub'); }
 async function issueOrderCode(orderId) {
     if (!orderId) { alert('اختاري الطلب الأول.'); return; }
     if (!confirm('إصدار كود جديد للطلب #' + orderId + '؟\nاتأكدي الأول إن صاحبة الطلب هي اللي بتكلمك على واتساب من رقمها المسجّل (مش بس إنها عارفة تفاصيل الطلب).\nالكود القديم هيبطل وكل الأجهزة المسجلة دخول هتخرج.')) return;
@@ -4494,6 +4535,20 @@ async function initApp() {
     try {
         fp = flatpickr('#date-filter', { dateFormat: 'Y-m-d', theme: 'dark', allowInput: true, clickOpens: false });
     } catch (e) { console.warn('flatpickr:', e); }
+
+    // كتابة الأدمن -> "يكتب الآن" عند العميل (على قناة الطلب المحمية)
+    let lastTypingSent = 0;
+    Object.keys(slots).forEach(k => {
+        const inp = document.getElementById(slots[k].input);
+        if (!inp) return;
+        inp.addEventListener('input', () => {
+            const e = slots[k].orderId && rtChans.get(slots[k].orderId);
+            if (e && Date.now() - lastTypingSent > 1500) {
+                lastTypingSent = Date.now();
+                e.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: true, sender: 'admin' } });
+            }
+        });
+    });
 
     // البحث العلوي: Enter يفتح جدول الطلبات بنتيجة البحث
     const gs = document.getElementById('global-search');
@@ -5114,6 +5169,12 @@ async function applyBulkDeleteChats() {
         const { error } = await _supabase.from('messages').delete().in('customer_phone', selectedPhones);
         if (error) throw error;
 
+        selectedPhones.forEach(phone => {
+            allOrders.filter(o => cleanPhone(o.customer_phone) === cleanPhone(phone)).forEach(o => {
+                const ch = _supabase.channel('order_chat_' + o.id, { config: { private: true } });
+                ch.subscribe(st => { if (st === 'SUBSCRIBED') { ch.send({ type: 'broadcast', event: 'delete_chat', payload: {} }); setTimeout(() => _supabase.removeChannel(ch), 500); } });
+            });
+        });
         alert("تم مسح المحادثات المحددة بنجاح! ✨");
         loadAllData(); 
         clearSelection();
