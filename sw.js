@@ -1,5 +1,5 @@
 // Service Worker — Besan Beauty (لوحة الإدارة)
-const CACHE_NAME = 'besan-admin-shell-v3';
+const CACHE_NAME = 'besan-admin-shell-v4';
 const APP_START = './admin.html';
 const SHELL_FILES = [
   './',
@@ -79,19 +79,21 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  // Resolve against this app's own scope (same host also serves the storefront under another path).
+  const scope = self.registration.scope;
   const rawUrl = event.notification.data?.url || APP_START;
   let target;
   try {
-    target = new URL(rawUrl, self.location.origin);
-    if (target.origin !== self.location.origin) target = new URL(APP_START, self.location.origin);
+    target = new URL(rawUrl, scope);
+    if (!target.href.startsWith(scope)) target = new URL(APP_START, scope);
   } catch (_) {
-    target = new URL(APP_START, self.location.origin);
+    target = new URL(APP_START, scope);
   }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
       for (const client of windows) {
-        if (new URL(client.url).origin === self.location.origin && 'focus' in client) {
+        if (client.url.startsWith(scope) && 'focus' in client) {
           return client.focus().then(() => client.navigate(target.href));
         }
       }
