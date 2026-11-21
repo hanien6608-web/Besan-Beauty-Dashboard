@@ -4351,22 +4351,8 @@ function payStateHTML(o) {
     const dep = parseFloat(o.deposit_amount) || 0;
     if (o.status === 'awaiting_payment') {
         if (o.receipt_path) return `<div class="pay-state st-review"><i class="bi bi-receipt"></i> إيصال مرفوع — محتاج مراجعتك وتأكيدك</div>`;
-        const rem = Math.max(0, (parseFloat(o.total_amount) || 0) - dep), shp = parseFloat(o.shipping_cost) || 0;
-        const items = (o.items || []).map(i => `<li>${esc(i.title)} × ${esc(i.qty)}${i.price != null ? ' — ' + ((parseFloat(i.price) || 0) * (parseFloat(i.qty) || 1)).toLocaleString() + ' ج.م' : ''}</li>`).join('');
-        return `<div class="pay-state st-wait pay-auto-msg">
-            <div class="pam-title"><i class="bi bi-chat-heart-fill"></i> رسالة تلقائية اتبعتت للعميلة (ظاهرة كمان في الشات) — الطلب في انتظار إيصال العربون</div>
-            <div class="pam-body">
-                <div>تفاصيل الطلب — المحافظة: ${esc(o.province || '')}</div><ul>${items}</ul>
-                <div class="pam-rows">
-                    <div><span>قيمة المنتجات</span><span>${(((parseFloat(o.total_amount) || 0) - shp)).toLocaleString()} ج.م</span></div>
-                    <div><span>الشحن</span><span>${shp.toLocaleString()} ج.م</span></div>
-                    <div><span>الإجمالي</span><span>${(parseFloat(o.total_amount) || 0).toLocaleString()} ج.م</span></div>
-                    <div class="pam-dep"><span>العربون المطلوب تحويله</span><span>${dep.toLocaleString()} ج.م</span></div>
-                    <div><span>الباقي عند الاستلام</span><span>${rem.toLocaleString()} ج.م</span></div>
-                </div>
-                <p>بعد ما تحوّل العربون، بترفع صورة الإيصال من السلة وبنراجعه ونأكد الطلب. الرسالة دي مبعوتة للعميلة في الشات من الأدمن ومش بتختفي.</p>
-            </div>
-        </div>`;
+        // عرض مختصر للأدمن: التفاصيل الكاملة موجودة في بيانات الطلب، والرسالة الكاملة متخزنة وبتوصل للعميلة زي ما هي
+        return `<div class="pay-state st-wait"><i class="bi bi-hourglass-split"></i> لم يتم رفع الإيصال</div>`;
     }
     if (o.status === 'expired') return `<div class="pay-state st-exp"><i class="bi bi-clock-history"></i> انتهت المهلة بدون إيصال</div>`;
     if (o.status === 'rejected') return `<div class="pay-state st-rej"><i class="bi bi-x-octagon-fill"></i> تم رفض الإيصال${o.payment_note ? ' — ' + esc(o.payment_note) : ''}</div>`;
