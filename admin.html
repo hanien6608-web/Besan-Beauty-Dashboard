@@ -2634,10 +2634,14 @@ footer .besan-footer-info a{color:#c21d68!important;text-decoration:underline}
 footer .besan-footer-links{text-align:start}
 footer .dev-card-wrapper{margin:22px 0 0!important;background:#fff!important;border:1.5px solid #c21d68!important;box-shadow:0 4px 14px rgba(194,29,104,.18)!important}
 @media(max-width:600px){footer .dedication-box{padding:28px 16px 18px}}
-footer .dedication-box{padding-bottom:160px}
 footer .dev-card-wrapper{flex-wrap:wrap;width:auto!important;justify-content:flex-start}
 footer .dev-card-wrapper .dev-badge{white-space:nowrap}
 footer .dev-card-wrapper>div:last-child{gap:12px!important;flex-wrap:wrap}
+footer .dedication-box{margin-inline-start:0;margin-inline-end:auto;padding-inline:clamp(24px,5vw,80px);padding-bottom:28px}
+footer .besan-social-links{list-style:none;display:flex;gap:12px;margin:16px 0 0;padding:0;justify-content:flex-start}
+footer .besan-social-links a{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#fce8f0;color:#c21d68!important;text-decoration:none;font-size:1.15rem}
+footer{position:relative;overflow:hidden;background:linear-gradient(115deg,#fff 0%,#fff 38%,#ffeef5 50%,#fff 62%,#fff 100%)!important}
+@media(max-width:600px){footer .dedication-box{padding-inline:16px;padding-bottom:24px}footer .dev-card-wrapper{margin-inline-start:0!important;margin-inline-end:72px!important}}
 .dev-badge{background:var(--pk)!important;color:#fff!important}
 /* زر العودة للأعلى */
 .scroll-top-btn{background:#fff!important;color:var(--pk)!important;border:2px solid var(--pk)!important}
@@ -3505,18 +3509,19 @@ footer .dev-card-wrapper>div:last-child{gap:12px!important;flex-wrap:wrap}
                       <h4>تعليمات مهمة 🚩</h4>
                       <ul><li>مافيش أي أوردر بدون ديبوزت.</li><li>في حالة تأكيد الأوردر برجاء إرسال عنوان كامل.</li><li>رقم موبايل واحد فقط ويكون متاح وفيه شبكة.</li><li>التوصيل من ٩ لـ ٢ وبعض المناطق ٤.</li><li>التوصيل عن طريق البريد المصري – خدمة وصلها.</li></ul>
                       <div class="besan-return-policy">لا يوجد استبدال أو استرجاع لأي أوردر ‼️</div>
-                      <p class="besan-footer-links"><a href="https://www.instagram.com/besanbeauty.eg?igsh=MWdhendid2J4aTd1dg==" target="_blank" rel="noopener">Instagram</a> · <a href="https://wa.me/c/201067826270" target="_blank" rel="noopener">كتالوج WhatsApp</a></p>
+                      <ul class="besan-social-links">
+                        <li><a href="https://www.facebook.com/share/1D2H8BJFVp/" target="_blank" rel="noopener" title="فيس بوك"><i class="bi bi-facebook"></i></a></li>
+                        <li><a href="https://www.instagram.com/besanbeauty.eg" target="_blank" rel="noopener" title="إنستجرام"><i class="bi bi-instagram"></i></a></li>
+                        <li><a href="https://wa.me/201067826270" target="_blank" rel="noopener" title="واتساب"><i class="bi bi-whatsapp"></i></a></li>
+                        <li><a href="https://wa.me/c/201067826270" target="_blank" rel="noopener" title="كتالوج واتساب"><i class="bi bi-shop"></i></a></li>
+                      </ul>
                     </div>
                     
                     <!-- كارت المبرمج المطور داخل الفوتر -->
                     <div class="dev-card-wrapper" title="تواصل مع المبرمج">
                         <div class="dev-badge">تصميم وتطوير <b>حنين</b> ✨</div>
-                        <div style="display: flex; justify-content: center; gap: 22px;">
-                            <a href="tel:201551455490" class="social-icon-link" title="اتصال"><i class="bi bi-telephone-fill"></i></a>
-                            <a href="https://facebook.com" target="_blank" class="social-icon-link" title="فيسبوك"><i class="bi bi-facebook"></i></a>
-                            <a href="https://wa.me/201551455490" target="_blank" class="social-icon-link" title="واتساب"><i class="bi bi-whatsapp"></i></a>
-                            <a href="https://instagram.com" target="_blank" class="social-icon-link" title="إنستجرام"><i class="bi bi-instagram"></i></a>
-                            <a href="mailto:dev@example.com" class="social-icon-link" title="إيميل"><i class="bi bi-envelope-at-fill"></i></a>
+                        <div style="display: flex; justify-content: center;">
+                            <a href="https://wa.me/201551455490" target="_blank" rel="noopener" class="social-icon-link" title="واتساب المطوّرة"><i class="bi bi-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
