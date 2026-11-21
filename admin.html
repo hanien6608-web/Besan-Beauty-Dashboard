@@ -3728,7 +3728,7 @@ async function loadAllData() {
         msgs.forEach(m => {
             const p = cleanPhone(m.customer_phone);
             if (!msgCache.has(p)) msgCache.set(p, []);
-            msgCache.get(p).push({ sender: m.sender, text: adminMsgView(m.text), created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
+            msgCache.get(p).push({ sender: m.sender, text: adminMsgView(m.text, m.sender), created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
             if (m.client_id) seenCids.add(m.client_id);
         });
         mergeAdminOutboxIntoCache();
@@ -3780,13 +3780,25 @@ function updateStats(all) {
    محرك الشات (واحد لكل الصفحات)
    ===================================================================== */
 // رسالة تسجيل الطلب التلقائية: العميلة بتشوفها كاملة، والأدمن يشوف ملخص قصير (التفاصيل موجودة في بيانات الطلب)
-function adminMsgView(text) {
+function adminMsgView(text, sender) {
     const t = String(text || '');
+    if (sender && sender !== 'admin') return t.replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
+    // رسالة تسجيل الطلب
     if (t.indexOf('[[CODE]]') !== -1 && t.indexOf('تفاصيل الطلب #') !== -1) {
         if (t.indexOf('في انتظار إيصال العربون') !== -1) return 'لم يتم رفع الإيصال';
         if (t.indexOf('ومعاه إيصال') !== -1) return 'تم رفع الإيصال وجاري المراجعة';
         return 'طلب جديد';
     }
+    // الرد الآلي على سؤال العميلة (تفاصيل الطلب كاملة)
+    if (/^🧾 تفاصيل الطلب #\d+/.test(t) && t.indexOf('حالة الطلب:') !== -1) {
+        if (t.indexOf('لسه محتاجين إيصال') !== -1) return 'لم يتم رفع الإيصال';
+        const m = t.match(/حالة الطلب:\s*([^\n]+)/);
+        return m ? 'حالة الطلب: ' + m[1].trim() : t;
+    }
+    // رسائل الحالة الآلية
+    if (/^أهلاً [^\n]*💗\nاستلمنا إيصال الدفع لطلبك رقم #\d+/.test(t)) return 'تم رفع الإيصال وجاري المراجعة';
+    if (/^أهلاً [^\n]*💗\nتم تأكيد استلام العربون لطلبك رقم #\d+/.test(t)) return 'تم تأكيد استلام العربون';
+    if (/^أهلاً [^\n]*💗\nللأسف مقدرناش نأكد الدفع من الإيصال/.test(t)) return 'تم رفض الإيصال';
     return t.replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
 }
 function bubbleEl(m) {
@@ -3794,7 +3806,7 @@ function bubbleEl(m) {
     d.className = 'msg msg-' + (m.sender === 'user' ? 'user' : 'admin') + (m.pending ? ' msg-pending' : '');
     if (m.cid) d.dataset.cid = m.cid;
     const t = document.createElement('div');
-    t.textContent = adminMsgView(m.text);
+    t.textContent = adminMsgView(m.text, m.sender);
     const time = document.createElement('small');
     time.style.cssText = 'display:block;font-size:.65rem;opacity:.6;margin-top:3px;';
     time.textContent = fmtClock(m.created_at);
