@@ -2921,6 +2921,21 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
 .badge-rejected{background:#b91c1c!important;color:#fff!important}
 .stat-card.stat-await{background:linear-gradient(145deg,#f59e0b,#fbbf24)!important;border-bottom:3px solid #b45309!important}
 .stat-card.stat-await *{color:#3a2400!important;text-shadow:none!important}
+/* ألوان: في انتظار الدفع = برتقالي ، جاري الشحن = أصفر واضح */
+.badge-awaiting{background:#ea580c!important;color:#fff!important}
+.badge-shipping{background:#facc15!important;color:#3a2c00!important}
+.stat-card.stat-await{background:linear-gradient(145deg,#ea580c,#fb923c)!important;border-bottom:3px solid #9a3412!important}
+.stat-card.stat-await *{color:#fff!important}
+.pay-queue-btn.has-items{background:#ea580c;color:#fff;border-color:#9a3412;box-shadow:0 6px 16px rgba(234,88,12,.4)}
+.stat-card.stat-2{background:linear-gradient(145deg,#facc15,#fde047)!important;border-bottom:3px solid #a16207!important}
+/* لابتوب: جدول الطلبات يدخل في العرض بدون سكرول أفقي */
+@media (min-width:769px){
+  #orders-table-body td,#orders-section thead th{padding-left:7px!important;padding-right:7px!important}
+  #orders-table-body tr.order-row .status-badge{min-width:0!important;max-width:104px;padding:4px 10px!important;font-size:.7rem!important;line-height:1.35;border-radius:999px!important;gap:4px;white-space:normal;text-align:center;box-shadow:0 2px 6px rgba(58,10,36,.18)!important}
+  #orders-table-body tr.order-row .status-badge i{font-size:.7rem}
+  #orders-table-body td:nth-child(8){min-width:0}
+}
+
 .pay-admin-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .pay-queue-btn,.pay-settings-btn{border:0;border-radius:14px;font-family:inherit;font-weight:800;font-size:.85rem;padding:11px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 .pay-queue-btn{background:#fff;color:#6b2a4c;border:1.5px solid rgba(246,0,111,.3)}
