@@ -4370,10 +4370,22 @@ function reminderText(o) {
     const first = String(o.customer_name || '').trim().split(/\s+/)[0] || '';
     const w = paySettings && paySettings.wallet_number ? `\nفودافون كاش: ${paySettings.wallet_number}` : '';
     const ip = paySettings && paySettings.instapay_address ? `\nإنستاباي: ${paySettings.instapay_address}` : '';
+    // مهلة الـ72 ساعة: من وقت إنشاء الطلب (created_at)، للتذكير بس — مفيش إلغاء تلقائي
+    const leftMs = o.created_at ? Date.parse(o.created_at) + 72 * 3600 * 1000 - Date.now() : NaN;
+    let windowLine = '', closing = `\n\nبعد التحويل ارفعي صورة الإيصال من السلة (زرار "رفع الإيصال") وهنأكد طلبك فوراً 🌸`;
+    if (!isNaN(leftMs)) {
+        if (leftMs > 0) {
+            const hrs = Math.ceil(leftMs / 3600000);
+            const left = hrs > 24 ? (Math.ceil(hrs / 24) === 2 ? 'حوالي يومين' : `حوالي ${Math.ceil(hrs / 24)} أيام`) : hrs === 1 ? 'أقل من ساعة' : `حوالي ${hrs} ساعة`;
+            windowLine = `\n⏳ فاضل ${left} من مهلة الـ72 ساعة لرفع الإيصال.`;
+        } else {
+            windowLine = `\nمهلة الـ72 ساعة على طلبك عدّت.`;
+            closing = `\n\nلسه حابة تكملي الدفع وتأكدي الطلب؟ ردّي علينا وهنساعدك 🌸`;
+        }
+    }
     return `أهلاً ${first} 💗\nتذكير لطيف بخصوص طلبك رقم #${o.id} في Besan Beauty.\n` +
-        `طلبك لسه في انتظار إيصال العربون: ${n(dep)} ج.م (الباقي عند الاستلام ${n(Math.max(0, total - dep))} ج.م).` +
-        (w || ip ? `\n\nالتحويل على:${w}${ip}` : '') +
-        `\n\nبعد التحويل ارفعي صورة الإيصال من السلة (زرار "رفع الإيصال") وهنأكد طلبك فوراً 🌸`;
+        `طلبك لسه في انتظار إيصال العربون: ${n(dep)} ج.م (الباقي عند الاستلام ${n(Math.max(0, total - dep))} ج.م).` + windowLine +
+        (w || ip ? `\n\nالتحويل على:${w}${ip}` : '') + closing;
 }
 function remindCustomerWA(orderId) {
     const o = allOrders.find(x => String(x.id) === String(orderId)); if (!o) return;
