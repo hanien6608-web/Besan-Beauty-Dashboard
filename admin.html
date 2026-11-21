@@ -3648,7 +3648,7 @@ async function loadAllData() {
         msgs.forEach(m => {
             const p = cleanPhone(m.customer_phone);
             if (!msgCache.has(p)) msgCache.set(p, []);
-            msgCache.get(p).push({ sender: m.sender, text: m.text, created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
+            msgCache.get(p).push({ sender: m.sender, text: String(m.text || '').replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]'), created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
             if (m.client_id) seenCids.add(m.client_id);
         });
         mergeAdminOutboxIntoCache();
