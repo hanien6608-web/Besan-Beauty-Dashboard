@@ -3704,7 +3704,7 @@ function bubbleEl(m) {
     d.className = 'msg msg-' + (m.sender === 'user' ? 'user' : 'admin') + (m.pending ? ' msg-pending' : '');
     if (m.cid) d.dataset.cid = m.cid;
     const t = document.createElement('div');
-    t.textContent = m.text;
+    t.textContent = String(m.text || '').replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
     const time = document.createElement('small');
     time.style.cssText = 'display:block;font-size:.65rem;opacity:.6;margin-top:3px;';
     time.textContent = fmtClock(m.created_at);
