@@ -2554,6 +2554,29 @@ input, textarea, select { user-select: text !important; caret-color: #f6006f !im
 .besan-footer-info{max-width:680px;margin:22px auto 0;padding:20px 22px;text-align:right;background:rgba(255,255,255,.78);border:1px solid rgba(201,30,108,.14);border-radius:20px;color:#684457;line-height:1.9;font-size:.86rem;box-shadow:0 8px 24px rgba(110,30,70,.06)}
 .besan-footer-info h4{color:#bd286d;font-size:.95rem;margin:10px 0 5px;font-weight:900}.besan-footer-info p{margin:4px 0}.besan-footer-info ul{margin:5px 0;padding:0 22px 0 0}.besan-footer-info li{padding:2px 0}.besan-return-policy{margin-top:12px;padding:11px 13px;border-radius:12px;background:#fff0f4;border:1px solid rgba(190,25,75,.2);color:#a51e4f;font-weight:900;text-align:center}.besan-footer-links{margin-top:12px!important;text-align:center}.besan-footer-info a{color:#bd286d;font-weight:900;text-decoration:none}.besan-dev-credit{display:flex;align-items:center;justify-content:center;gap:12px;width:max-content;max-width:100%;margin:22px auto 0;padding:10px 16px;border:1px solid rgba(201,30,108,.15);border-radius:15px;background:rgba(255,255,255,.72);box-shadow:0 5px 16px rgba(110,30,70,.06)}.besan-dev-credit .dev-badge{margin:0!important;padding:0!important;background:transparent!important;color:#8d526e!important;font-size:.78rem;font-weight:700}.besan-dev-credit a{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#fce8f0;color:#c21d68;font-size:1.05rem}
 @media(max-width:600px){.besan-footer-info{padding:16px 14px;font-size:.8rem}.besan-dev-credit{padding:8px 12px}}
+
+.hub-reply-btn{display:block;margin-top:4px;background:none;border:0;padding:0;font:inherit;font-size:.7rem;font-weight:700;color:var(--pk);cursor:pointer;opacity:.85}
+.msg-admin .hub-reply-btn{color:#fff}
+.msg-pinned{outline:2px solid var(--pk);outline-offset:2px}
+.hub-pinbox{display:flex;align-items:center;gap:8px;background:rgba(246,0,111,.1);border-radius:10px;padding:6px 10px;font-weight:700}
+.hub-pinbox span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hub-pinbox button{border:0;background:none;font-size:1rem;cursor:pointer}
+/* شات الأدمن: أطول، بدون سكرول أفقي، شكل واتساب */
+#users-management-section{padding-bottom:120px}
+#users-management-section .chat-hub-wrapper,#users-management-section .chat-hub-wrapper.chat-open{height:calc(100vh - 140px)!important;height:calc(100dvh - 140px)!important;min-height:520px!important;scroll-margin-top:10px}
+#chat-hub-wrapper{overflow:hidden}
+#hub-chat-messages{overflow-x:hidden!important;background:#efe7ea!important;background-image:radial-gradient(rgba(246,0,111,.07) 1.2px,transparent 1.4px)!important;background-size:22px 22px!important;padding:14px 16px!important;gap:6px!important}
+#hub-chat-messages .msg{position:relative;max-width:78%!important;min-width:0;padding:7px 11px 5px!important;border-radius:12px!important;font-size:.92rem;line-height:1.5;font-weight:500!important;box-shadow:0 1px 1px rgba(60,10,35,.14)!important;overflow-wrap:anywhere;word-break:break-word;border:0!important}
+#hub-chat-messages .msg-user{background:#fff!important;color:#2a0a1a!important;border-top-right-radius:3px!important}
+#hub-chat-messages .msg-admin{background:linear-gradient(135deg,#ff4aa0,#f6006f)!important;color:#fff!important;border-top-left-radius:3px!important}
+#hub-chat-messages .msg small{display:inline-block!important;margin-top:2px!important;font-size:.64rem!important;opacity:.7!important}
+#hub-chat-messages .msg>small:first-child{display:table!important;margin:0 0 3px!important;font-weight:700;background:rgba(246,0,111,.1)!important;color:#c20058}
+#hub-chat-messages .msg-admin>small:first-child{background:rgba(255,255,255,.22)!important;color:#fff}
+#hub-chat-messages .hub-reply-btn{display:inline-block;margin:0 10px 0 0;font-size:.68rem;opacity:.8}
+#hub-chat-messages .msg-pinned{outline:2px solid #f6006f;outline-offset:2px}
+#hub-order-bar{padding:6px 10px!important}
+.hub-input-area{background:#f6eef2!important;padding:8px 12px!important}
+#hub-admin-input{height:44px!important}
 </style>
 <style>html,body{background:linear-gradient(160deg,#fff 0%,#ffe9f2 55%,#ebe5f3 100%) fixed!important;color:#3a0a24}body::before,body::after{background:none!important}</style><style>.main-content{background:rgba(255,255,255,.35)!important}</style><style>:root{--primary:#f6006f;--secondary:#c81566}html,body{background:linear-gradient(160deg,#fff 0%,#ffe9f2 55%,#ebe5f3 100%) fixed!important}.main-content{background:rgba(255,255,255,.35)!important}
 .profile-trigger-btn{background:#fff!important;color:#f6006f!important;border:2px solid #f6006f!important;box-shadow:0 6px 16px rgba(246,0,111,.25)!important}.profile-hidden-menu{background:#fff!important;border:1px solid rgba(246,0,111,.2)!important;box-shadow:0 16px 40px rgba(200,21,102,.25)!important}.menu-email{color:#3a0a24!important;border-bottom-color:rgba(246,0,111,.15)!important}.menu-title{color:#f6006f!important}.menu-logout-link{background:#c81566!important;color:#fff!important;border-color:#c81566!important}
@@ -3066,8 +3089,7 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                                 </div>
                             </div>
                             <div id="hub-order-bar" style="display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid rgba(246,0,111,.15);flex-wrap:wrap;">
-                                <label for="hub-order-select" style="font-size:.8rem;font-weight:700;">الرد على طلب:</label>
-                                <select id="hub-order-select" onchange="hubPickOrder(this.value)" style="flex:1;min-width:150px;padding:6px;border-radius:10px;border:1px solid rgba(246,0,111,.3);"></select>
+                                <div id="hub-pin" style="flex:1;min-width:150px;font-size:.8rem;color:#3a0a24;"></div>
                                 <button class="btn-burgundy" type="button" onclick="issueOrderCode(slots.hub.orderId)" title="إصدار كود دخول جديد لهذا الطلب"><i class="bi bi-key"></i> كود جديد</button>
                             </div>
                             <div id="hub-chat-messages" class="hub-chat-messages"></div>
@@ -3589,7 +3611,7 @@ const msgCache = new Map();        // phone -> [{sender,text,created_at}]
 const recentKeys = new Map();      // لمنع تكرار الرسالة (بث + قاعدة بيانات) للرسائل القديمة بدون معرّف
 const seenCids = new Set();        // معرّفات الرسائل اللي اتعرضت (منع التكرار بدقة)
 const slots = {
-    hub:   { phone: null, orderId: null, box: 'hub-chat-messages', typing: 'typing-indicator-hub',   input: 'hub-admin-input', timer: null },
+    hub:   { all: true, pin: null, phone: null, orderId: null, box: 'hub-chat-messages', typing: 'typing-indicator-hub',   input: 'hub-admin-input', timer: null },
     order: { phone: null, orderId: null, box: 'chat-body',          typing: 'typing-indicator-admin', input: 'admin-input',     timer: null }
 };
 
@@ -3717,9 +3739,10 @@ function bubbleEl(m) {
     time.textContent = fmtClock(m.created_at);
     if (m.tag && m.order_id) { const tg = document.createElement('small'); tg.style.cssText = 'display:inline-block;font-size:.65rem;font-weight:700;background:rgba(246,0,111,.12);border-radius:8px;padding:1px 6px;margin-bottom:3px;'; tg.textContent = 'طلب #' + m.order_id + (m.order_link === 'inferred' ? ' (تقديري، رسالة قديمة)' : ''); d.append(tg); }
     d.append(t, time);
+    if (m.reply && m.order_id) { const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'hub-reply-btn'; rb.textContent = '↩ رد'; rb.onclick = () => hubPinMsg(m); d.append(rb); if (slots.hub.pin && String(slots.hub.pin.orderId) === String(m.order_id) && slots.hub.pin.cid === (m.cid || null) && slots.hub.pin.text === m.text) d.classList.add('msg-pinned'); }
     return d;
 }
-function slotShows(s, m) { return !s.orderId || String(m.order_id) === String(s.orderId); }
+function slotShows(s, m) { return s.all || !s.orderId || String(m.order_id) === String(s.orderId); }
 
 function appendBubble(boxId, m) {
     const box = document.getElementById(boxId);
@@ -3742,7 +3765,7 @@ function renderThread(slot) {
     const msgs = (msgCache.get(s.phone) || []).filter(m => slotShows(s, m));
     if (!msgs.length) { box.innerHTML = placeholderHTML('لا توجد رسائل بعد'); return; }
     const frag = document.createDocumentFragment();
-    msgs.forEach(m => frag.appendChild(bubbleEl(Object.assign({}, m, { tag: !s.orderId }))));
+    msgs.forEach(m => frag.appendChild(bubbleEl(Object.assign({}, m, { tag: s.all || !s.orderId, reply: !!s.all }))));
     box.appendChild(frag);
     box.scrollTop = box.scrollHeight;
 }
@@ -3799,7 +3822,7 @@ function addMessage(phone, sender, text, createdAt, silent, cid, pending, orderI
     let watching = false;
     Object.keys(slots).forEach(k => {
         if (slots[k].phone === phone && slotShows(slots[k], msg)) {
-            appendBubble(slots[k].box, Object.assign({}, msg, { tag: !slots[k].orderId }));
+            appendBubble(slots[k].box, Object.assign({}, msg, { tag: slots[k].all || !slots[k].orderId, reply: !!slots[k].all }));
             if (isSlotVisible(k)) watching = true;
             if (sender === 'user') hideTyping(k);
         }
@@ -3846,14 +3869,47 @@ function rtLeave(slot, orderId) {
     e.slots.delete(slot);
     if (!e.slots.size) { try { _supabase.removeChannel(e.ch); } catch (x) {} rtChans.delete(orderId); }
 }
-function bindChat(slot, phone, orderId) {
+function bindChat(slot, phone, orderId, allIds) {
     const s = slots[slot];
-    if (s.orderId) rtLeave(slot, s.orderId);
+    (s.joined || []).forEach(id => rtLeave(slot, id));
+    if (!s.all && s.orderId) rtLeave(slot, s.orderId);
     s.phone = cleanPhone(phone);
     s.orderId = orderId ? String(orderId) : null;
-    if (s.orderId) rtJoin(slot, s.orderId);
+    s.pin = null;
+    s.joined = s.all ? (allIds || []).map(String) : [];
+    if (s.all) s.joined.forEach(id => rtJoin(slot, id));
+    else if (s.orderId) rtJoin(slot, s.orderId);
 }
-function unbindChat(slot) { const s = slots[slot]; if (s.orderId) rtLeave(slot, s.orderId); s.phone = null; s.orderId = null; hideTyping(slot); }
+function unbindChat(slot) { const s = slots[slot]; (s.joined || []).forEach(id => rtLeave(slot, id)); s.joined = []; if (!s.all && s.orderId) rtLeave(slot, s.orderId); s.phone = null; s.orderId = null; s.pin = null; hideTyping(slot); }
+function fitHubChat(scroll) {
+    try {
+        const w = document.getElementById('chat-hub-wrapper'), nav = document.querySelector('.bottom-bar');
+        if (!w || !nav || !w.offsetParent) return;
+        if (scroll) window.scrollTo(0, Math.max(0, w.getBoundingClientRect().top + window.pageYOffset - 10));
+        const navTop = nav.getBoundingClientRect().top, top = w.getBoundingClientRect().top;
+        const h = Math.max(420, Math.floor(navTop - top - 10));
+        w.style.setProperty('height', h + 'px', 'important');
+    } catch (e) {}
+}
+window.addEventListener('resize', () => fitHubChat(false));
+function hubPinMsg(m) {
+    const s = slots.hub; s.orderId = String(m.order_id);
+    s.pin = { orderId: s.orderId, cid: m.cid || null, text: m.text };
+    renderHubPin(); renderThread('hub');
+    const i = document.getElementById('hub-admin-input'); if (i) i.focus();
+}
+function hubUnpin() { const s = slots.hub; s.orderId = null; s.pin = null; renderHubPin(); renderThread('hub'); }
+function renderHubPin() {
+    const el = document.getElementById('hub-pin'); if (!el) return;
+    const s = slots.hub; el.textContent = '';
+    if (!s.orderId) { el.style.opacity = '.7'; el.textContent = 'اضغطي ↩ رد على رسالة العميلة عشان تحددي هترُدي على أنهي طلب'; return; }
+    el.style.opacity = '1';
+    const b = document.createElement('div'); b.className = 'hub-pinbox';
+    const t = document.createElement('span'); const sn = s.pin ? String(s.pin.text || '').replace('[[CODE]]', '🔐 كود').slice(0, 60) : '';
+    t.textContent = '↩ ردك هيروح لطلب #' + s.orderId + (sn ? ' — «' + sn + '»' : '');
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.title = 'إلغاء'; x.onclick = hubUnpin;
+    b.append(t, x); el.append(b);
+}
 
 async function sendReply(slot) {
     slot = slot || 'order';
@@ -3861,7 +3917,7 @@ async function sendReply(slot) {
     const input = document.getElementById(s.input);
     const text = input.value.trim();
     if (!text || !s.phone) return;
-    if (!s.orderId) { alert('اختاري الطلب اللي هترُدي عليه الأول (من قائمة "الرد على طلب"). كل رد بيروح لمحادثة طلب واحد بس.'); return; }
+    if (!s.orderId) { alert('اضغطي ↩ رد على رسالة العميلة الأول عشان أعرف الرد رايح لأنهي طلب.'); return; }
     const phone = s.phone, orderId = s.orderId;
     input.value = '';
     input.focus();
@@ -4050,10 +4106,8 @@ function setChatFilter(f, btn) {
 function openHubChat(phone) {
     const c = getCustomers().get(phone);
     if (!c) return;
-    bindChat('hub', phone, c.orders.length === 1 ? c.orders[0].id : null);
-    { const sel = document.getElementById('hub-order-select'); const ords = c.orders.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      sel.innerHTML = '<option value="">اختاري الطلب...</option>' + ords.map(o => `<option value="${esc(o.id)}">#${esc(o.id)} - ${esc(formatEgyptTime(o.created_at))}</option>`).join('');
-      sel.value = slots.hub.orderId || ''; }
+    bindChat('hub', phone, c.orders.length === 1 ? c.orders[0].id : null, c.orders.map(o => o.id));
+    renderHubPin();
     document.getElementById('chat-placeholder').style.display = 'none';
     document.getElementById('chat-active-container').style.display = 'flex';
     document.getElementById('chat-hub-wrapper').classList.add('chat-open');
@@ -4062,11 +4116,11 @@ function openHubChat(phone) {
     setText('active-chat-avatar', (c.name || '؟').trim().charAt(0) || '؟');
     renderThread('hub');
     renderChatList();
+    fitHubChat(true);
     const inp = document.getElementById('hub-admin-input');
     if (inp && window.innerWidth > 768) inp.focus();
 }
 
-function hubPickOrder(v) { bindChat('hub', slots.hub.phone, v || null); renderThread('hub'); }
 async function issueOrderCode(orderId) {
     if (!orderId) { alert('اختاري الطلب الأول.'); return; }
     if (!confirm('إصدار كود جديد للطلب #' + orderId + '؟\nاتأكدي الأول إن صاحبة الطلب هي اللي بتكلمك على واتساب من رقمها المسجّل (مش بس إنها عارفة تفاصيل الطلب).\nالكود القديم هيبطل وكل الأجهزة المسجلة دخول هتخرج.')) return;
