@@ -3781,25 +3781,8 @@ function updateStats(all) {
    ===================================================================== */
 // رسالة تسجيل الطلب التلقائية: العميلة بتشوفها كاملة، والأدمن يشوف ملخص قصير (التفاصيل موجودة في بيانات الطلب)
 function adminMsgView(text, sender) {
-    const t = String(text || '');
-    if (sender && sender !== 'admin') return t.replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
-    // رسالة تسجيل الطلب
-    if (t.indexOf('[[CODE]]') !== -1 && t.indexOf('تفاصيل الطلب #') !== -1) {
-        if (t.indexOf('في انتظار إيصال العربون') !== -1) return 'لم يتم رفع الإيصال';
-        if (t.indexOf('ومعاه إيصال') !== -1) return 'تم رفع الإيصال وجاري المراجعة';
-        return 'طلب جديد';
-    }
-    // الرد الآلي على سؤال العميلة (تفاصيل الطلب كاملة)
-    if (/^🧾 تفاصيل الطلب #\d+/.test(t) && t.indexOf('حالة الطلب:') !== -1) {
-        if (t.indexOf('لسه محتاجين إيصال') !== -1) return 'لم يتم رفع الإيصال';
-        const m = t.match(/حالة الطلب:\s*([^\n]+)/);
-        return m ? 'حالة الطلب: ' + m[1].trim() : t;
-    }
-    // رسائل الحالة الآلية
-    if (/^أهلاً [^\n]*💗\nاستلمنا إيصال الدفع لطلبك رقم #\d+/.test(t)) return 'تم رفع الإيصال وجاري المراجعة';
-    if (/^أهلاً [^\n]*💗\nتم تأكيد استلام العربون لطلبك رقم #\d+/.test(t)) return 'تم تأكيد استلام العربون';
-    if (/^أهلاً [^\n]*💗\nللأسف مقدرناش نأكد الدفع من الإيصال/.test(t)) return 'تم رفض الإيصال';
-    return t.replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
+    // العرض الكامل زي الأول: بس علامة الكود بتتبدّل بنص واضح للأدمن
+    return String(text || '').replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
 }
 function bubbleEl(m) {
     const d = document.createElement('div');
@@ -4125,7 +4108,7 @@ function renderChatList() {
     chatVisiblePhones = rows.map(r => r.c.phone);
     chatSelUpdate();
     list.innerHTML = rows.map(({ c, last, unread }) => {
-        const preview = last ? (last.sender === 'user' ? '' : 'أنتِ: ') + adminMsgView(last.text, last.sender) : 'لا توجد رسائل بعد';
+        const preview = last ? (last.sender === 'user' ? '' : 'أنتِ: ') + last.text : 'لا توجد رسائل بعد';
         const chk = chatSelectMode ? `<input type="checkbox" class="chat-sel" data-phone="${esc(c.phone)}" ${chatSelected.has(c.phone) ? 'checked' : ''} onclick="event.stopPropagation(); chatToggleOne(this)" style="width:20px;height:20px;flex:none;margin-inline-end:8px;">` : '';
         return `<div class="chat-item-card${c.phone === slots.hub.phone ? ' active' : ''}" onclick="${chatSelectMode ? `chatCardTap('${c.phone}')` : `openHubChat('${c.phone}')`}">${chk}
             <div class="customer-avatar-circle">${esc((c.name || '؟').trim().charAt(0) || '؟')}</div>
@@ -4417,7 +4400,7 @@ function paymentPanelInner(o) {
                 <button type="button" class="pay-btn-wa" onclick="remindCustomerWA('${o.id}')"><i class="bi bi-whatsapp"></i> ذكّري العميلة (واتساب)</button>
                 <button type="button" class="pay-btn-chat" onclick="remindCustomerChat('${o.id}')"><i class="bi bi-chat-heart-fill"></i> ذكّري في الشات</button>
             </div>` : ''}
-            ${canAct ? `<div class="pay-actions">
+            ${(canAct && o.receipt_path) ? `<div class="pay-actions">
                 <button type="button" class="pay-btn-ok" onclick="confirmPayment('${o.id}')"><i class="bi bi-check-circle-fill"></i> تأكيد الدفع</button>
                 <button type="button" class="pay-btn-no" onclick="rejectPayment('${o.id}')"><i class="bi bi-x-circle-fill"></i> رفض</button>
             </div>` : ''}
