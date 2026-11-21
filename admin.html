@@ -3343,8 +3343,8 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                             <th style="width: 60px;">
                                 <div class="table-check-wrapper" onclick="const chk = document.getElementById('select-all-orders'); chk.checked = !chk.checked; toggleAllCheckboxes(chk);">
                                     <input type="checkbox" id="select-all-orders" onclick="event.stopPropagation(); toggleAllCheckboxes(this)">
-                                    <span style="font-size:.7rem;font-weight:700;display:block;white-space:nowrap;">تحديد الكل</span>
                                 </div>
+                                <div style="font-size:.7rem;font-weight:700;text-align:center;white-space:nowrap;margin-top:3px;cursor:pointer;" onclick="document.getElementById('select-all-orders').click()">تحديد الكل</div>
                             </th>
                             <th class="sortable" onclick="sortBy('id')">رقم الطلب <i class="bi bi-hash"></i></th>
                             <th class="sortable" onclick="sortBy('created_at')">التوقيت <i class="bi bi-calendar-event-fill"></i></th>
