@@ -2561,6 +2561,11 @@ input, textarea, select { user-select: text !important; caret-color: #f6006f !im
 .hub-reply-btn{display:block;margin-top:4px;background:none;border:0;padding:0;font:inherit;font-size:.7rem;font-weight:700;color:var(--pk);cursor:pointer;opacity:.85}
 .msg-admin .hub-reply-btn{color:#fff}
 .msg-pinned{outline:2px solid var(--pk);outline-offset:2px}
+.hub-reply-preview{display:flex;align-items:center;gap:8px;margin:0 10px 6px;padding:6px 10px;background:rgba(246,0,111,.08);border-inline-start:4px solid var(--pk);border-radius:10px;color:#3a0a24}
+.hub-reply-preview .hrp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.hub-reply-preview .hrp-title{font-size:.72rem;font-weight:800;color:var(--pk)}
+.hub-reply-preview .hrp-text{font-size:.78rem;font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hub-reply-preview button{border:0;background:none;font-size:1.1rem;line-height:1;cursor:pointer;color:#3a0a24;padding:4px 6px}
 .hub-pinbox{display:flex;align-items:center;gap:8px;background:rgba(246,0,111,.1);border-radius:10px;padding:6px 10px;font-weight:700}
 .hub-pinbox span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hub-pinbox button{border:0;background:none;font-size:1rem;cursor:pointer}
@@ -3165,6 +3170,7 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                                 <div class="typing-dots"><span></span><span></span><span></span></div>
                                 <span>العميل يكتب الآن...</span>
                             </div>
+                            <div id="hub-reply-preview" class="hub-reply-preview" style="display:none"></div>
                             <div class="hub-input-area">
                                 <input type="text" id="hub-admin-input" placeholder="اكتبي ردك هنا..." onkeypress="if(event.key==='Enter') sendReply('hub')">
                                 <button class="send-btn" onclick="sendReply('hub')">إرسال <i class="bi bi-send-fill"></i></button>
@@ -3813,7 +3819,11 @@ function bubbleEl(m) {
     time.textContent = fmtClock(m.created_at);
     if (m.tag && m.order_id) { const tg = document.createElement('small'); tg.style.cssText = 'display:inline-block;font-size:.65rem;font-weight:700;background:rgba(246,0,111,.12);border-radius:8px;padding:1px 6px;margin-bottom:3px;'; tg.textContent = 'طلب #' + m.order_id + (m.order_link === 'inferred' ? ' (تقديري، رسالة قديمة)' : ''); d.append(tg); }
     d.append(t, time);
-    if (m.reply && m.order_id) { const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'hub-reply-btn'; rb.textContent = '↩ رد'; rb.onclick = () => hubPinMsg(m); d.append(rb); d.style.touchAction = 'pan-y'; { let sx = 0, sy = 0, down = false; d.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; down = true; try { d.setPointerCapture(e.pointerId); } catch (_) {} }); d.addEventListener('pointerup', e => { if (!down) return; down = false; const dx = e.clientX - sx, dy = e.clientY - sy; if (dx > 60 && Math.abs(dy) < 40 && dx > 2 * Math.abs(dy)) hubPinMsg(m); }); d.addEventListener('pointercancel', () => { down = false; }); } if (slots.hub.pin && String(slots.hub.pin.orderId) === String(m.order_id) && slots.hub.pin.cid === (m.cid || null) && slots.hub.pin.text === m.text) d.classList.add('msg-pinned'); }
+    if (m.reply && m.order_id) { const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'hub-reply-btn'; rb.textContent = '↩ رد'; rb.onclick = () => hubPinMsg(m); d.append(rb); d.style.touchAction = 'pan-y'; { let sx = 0, sy = 0, down = false, moved = false; const settle = () => { d.style.transition = 'transform .18s ease-out'; d.style.transform = ''; };
+        d.addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; down = true; moved = false; d.style.transition = 'none'; try { d.setPointerCapture(e.pointerId); } catch (_) {} });
+        d.addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX - sx, dy = e.clientY - sy; if (dx > 8 && Math.abs(dy) < 40 && dx > 2 * Math.abs(dy)) { moved = true; d.style.transform = 'translateX(' + Math.min(dx, 90) + 'px)'; } else if (moved) { d.style.transform = ''; moved = false; } });
+        d.addEventListener('pointerup', e => { if (!down) return; down = false; const dx = e.clientX - sx, dy = e.clientY - sy; settle(); if (dx > 60 && Math.abs(dy) < 40 && dx > 2 * Math.abs(dy)) hubPinMsg(m); });
+        d.addEventListener('pointercancel', () => { down = false; settle(); }); } if (slots.hub.pin && String(slots.hub.pin.orderId) === String(m.order_id) && slots.hub.pin.cid === (m.cid || null) && slots.hub.pin.text === m.text) d.classList.add('msg-pinned'); }
     return d;
 }
 function slotShows(s, m) { return s.all || !s.orderId || String(m.order_id) === String(s.orderId); }
@@ -3976,13 +3986,18 @@ function hubUnpin() { const s = slots.hub; s.orderId = null; s.pin = null; rende
 function renderHubPin() {
     const el = document.getElementById('hub-pin'); if (!el) return;
     const s = slots.hub; el.textContent = '';
-    if (!s.orderId) { el.style.opacity = '.7'; el.textContent = 'اضغطي ↩ رد على رسالة العميلة عشان تحددي هترُدي على أنهي طلب'; return; }
+    const pv = document.getElementById('hub-reply-preview');
+    if (pv) { pv.textContent = ''; pv.style.display = 'none'; }
+    if (!s.orderId) { el.style.opacity = '.7'; el.textContent = 'اسحبي رسالة العميلة لليمين (أو اضغطي ↩ رد) عشان تحددي هترُدي على أنهي طلب'; return; }
     el.style.opacity = '1';
-    const b = document.createElement('div'); b.className = 'hub-pinbox';
-    const t = document.createElement('span'); const sn = s.pin ? adminMsgView(s.pin.text).slice(0, 60) : '';
-    t.textContent = '↩ ردك هيروح لطلب #' + s.orderId + (sn ? ' — «' + sn + '»' : '');
-    const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.title = 'إلغاء'; x.onclick = hubUnpin;
-    b.append(t, x); el.append(b);
+    if (!pv) return;
+    const body = document.createElement('div'); body.className = 'hrp-body';
+    const t = document.createElement('span'); t.className = 'hrp-title'; t.textContent = '↩ ردك هيروح لطلب #' + s.orderId;
+    body.append(t);
+    const sn = s.pin ? adminMsgView(s.pin.text).replace(/\s+/g, ' ').trim().slice(0, 120) : '';
+    if (sn) { const q = document.createElement('span'); q.className = 'hrp-text'; q.textContent = sn; body.append(q); }
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.title = 'إلغاء'; x.setAttribute('aria-label', 'إلغاء الرد'); x.onclick = hubUnpin;
+    pv.append(body, x); pv.style.display = 'flex';
 }
 
 async function sendReply(slot) {
@@ -3991,7 +4006,7 @@ async function sendReply(slot) {
     const input = document.getElementById(s.input);
     const text = input.value.trim();
     if (!text || !s.phone) return;
-    if (!s.orderId) { alert('اضغطي ↩ رد على رسالة العميلة الأول عشان أعرف الرد رايح لأنهي طلب.'); return; }
+    if (!s.orderId) { alert('اسحبي رسالة العميلة لليمين (أو اضغطي ↩ رد) الأول عشان أعرف الرد رايح لأنهي طلب.'); return; }
     const phone = s.phone, orderId = s.orderId;
     input.value = '';
     input.focus();
