@@ -2946,6 +2946,7 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
 .pay-actions{display:flex;gap:8px}
 .pay-actions button{flex:1;border:0;border-radius:12px;padding:12px;font-family:inherit;font-weight:900;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .pay-remind{margin-bottom:8px}.pay-btn-wa{background:#25D366;color:#fff}.pay-btn-chat{background:#f6006f;color:#fff}
+.pay-actions.pay-remind{gap:6px}.pay-actions.pay-remind button{padding:6px 8px;min-height:40px;font-size:.76rem;line-height:1.25;border-radius:10px;gap:4px}
 .pay-btn-ok{background:#16a34a;color:#fff}.pay-btn-no{background:#dc2626;color:#fff}
 .pay-settings-card{width:94%;max-width:480px;max-height:90vh;overflow:auto;background:#fff;border:1px solid rgba(246,0,111,.3);border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.45);color:#3a0a24}
 .pay-settings-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(246,0,111,.2)}
@@ -3724,7 +3725,7 @@ async function loadAllData() {
         msgs.forEach(m => {
             const p = cleanPhone(m.customer_phone);
             if (!msgCache.has(p)) msgCache.set(p, []);
-            msgCache.get(p).push({ sender: m.sender, text: String(m.text || '').replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]'), created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
+            msgCache.get(p).push({ sender: m.sender, text: adminMsgView(m.text), created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
             if (m.client_id) seenCids.add(m.client_id);
         });
         mergeAdminOutboxIntoCache();
@@ -3775,12 +3776,22 @@ function updateStats(all) {
 /* =====================================================================
    محرك الشات (واحد لكل الصفحات)
    ===================================================================== */
+// رسالة تسجيل الطلب التلقائية: العميلة بتشوفها كاملة، والأدمن يشوف ملخص قصير (التفاصيل موجودة في بيانات الطلب)
+function adminMsgView(text) {
+    const t = String(text || '');
+    if (t.indexOf('[[CODE]]') !== -1 && t.indexOf('تفاصيل الطلب #') !== -1) {
+        if (t.indexOf('في انتظار إيصال العربون') !== -1) return 'لم يتم رفع الإيصال';
+        if (t.indexOf('ومعاه إيصال') !== -1) return 'تم رفع الإيصال وجاري المراجعة';
+        return 'طلب جديد';
+    }
+    return t.replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
+}
 function bubbleEl(m) {
     const d = document.createElement('div');
     d.className = 'msg msg-' + (m.sender === 'user' ? 'user' : 'admin') + (m.pending ? ' msg-pending' : '');
     if (m.cid) d.dataset.cid = m.cid;
     const t = document.createElement('div');
-    t.textContent = String(m.text || '').replace('[[CODE]]', '🔐 [كود دخول العميل — بيظهر للعميل بس]');
+    t.textContent = adminMsgView(m.text);
     const time = document.createElement('small');
     time.style.cssText = 'display:block;font-size:.65rem;opacity:.6;margin-top:3px;';
     time.textContent = fmtClock(m.created_at);
@@ -3952,7 +3963,7 @@ function renderHubPin() {
     if (!s.orderId) { el.style.opacity = '.7'; el.textContent = 'اضغطي ↩ رد على رسالة العميلة عشان تحددي هترُدي على أنهي طلب'; return; }
     el.style.opacity = '1';
     const b = document.createElement('div'); b.className = 'hub-pinbox';
-    const t = document.createElement('span'); const sn = s.pin ? String(s.pin.text || '').replace('[[CODE]]', '🔐 كود').slice(0, 60) : '';
+    const t = document.createElement('span'); const sn = s.pin ? adminMsgView(s.pin.text).slice(0, 60) : '';
     t.textContent = '↩ ردك هيروح لطلب #' + s.orderId + (sn ? ' — «' + sn + '»' : '');
     const x = document.createElement('button'); x.type = 'button'; x.textContent = '✕'; x.title = 'إلغاء'; x.onclick = hubUnpin;
     b.append(t, x); el.append(b);
