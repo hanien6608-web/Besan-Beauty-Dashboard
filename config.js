@@ -15,7 +15,7 @@ window.APP_CONFIG = {
     STORAGE_BUCKET: 'product-images',
 
     // مفتاح Web Push العام (يُضاف بعد توليد زوج مفاتيح VAPID)
-    VAPID_PUBLIC_KEY: 'PASTE_VAPID_PUBLIC_KEY_HERE',
+    VAPID_PUBLIC_KEY: 'BIlBRlPWPVa9XamZAbmKeqpQziQ9IIaBBMJxcPdnX2wLvtgnoHcQLHPRyJMEfQnKTriwZVe0ymvp3P_7Eu3kBvY',
 
     // أصوات التنبيه (ملفات جاهزة جوا مجلد sounds، مش محتاجة رفع)
     SOUND_ORDER: 'sounds/order.mp3',

@@ -1,5 +1,5 @@
 // Service Worker — Besan Beauty (لوحة الإدارة)
-const CACHE_NAME = 'besan-admin-shell-v2';
+const CACHE_NAME = 'besan-admin-shell-v3';
 const APP_START = './admin.html';
 const SHELL_FILES = [
   './',

@@ -43,7 +43,7 @@
         const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
         const client = window.BESAN_SUPABASE || window.supabase.createClient(window.APP_CONFIG.SUPABASE_URL, window.APP_CONFIG.SUPABASE_ANON_KEY);
         const phone = localStorage.getItem('user_chat_phone') || '';
-        const { error } = await client.functions.invoke('push-notifications', { body: { audience: isAdmin ? 'admin' : 'customer', phone, subscription: subscription.toJSON() } });
+        const { error } = await client.functions.invoke('push-notifications', { body: { audience: isAdmin ? 'admin' : 'customer', phone, subscription: subscription.toJSON(), action: isAdmin ? 'test' : undefined } });
         if (error) throw error;
         hint.textContent = 'تم تفعيل الإشعارات بنجاح 💗';
         notifyButton.textContent = 'الإشعارات مفعّلة ✓';
