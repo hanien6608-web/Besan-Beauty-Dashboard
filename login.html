@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#f6006f">
+    <title>Besan Beauty | تسجيل الدخول</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="shortcut icon" href="logo-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --pk:#f6006f; --pk-light:#ff3d96; --pk-deep:#c81566; --pk-dark:#a80058; --pk-soft:#ffe3f0; --ink:#3a0a24; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        input { user-select: text; caret-color: var(--pk); }
+        html { background: #f6006f; }
+        body {
+            font-family: 'Cairo', sans-serif; margin: 0; min-height: 100vh; min-height: 100dvh;
+            display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 40%, #ff2d8f 0%, #f6006f 55%, #c81566 100%) no-repeat;
+            position: relative; overflow: hidden; color: var(--ink);
+        }
+
+        /* ===== الخلفية: دوائر ضوء ناعمة ===== */
+        .aurora { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+        .blob { position: absolute; width: 460px; height: 460px; border-radius: 50%; background: #fff; opacity: .16; filter: blur(110px); animation: drift 16s infinite alternate ease-in-out; }
+        .blob.b1 { top: -14%; left: -14%; } .blob.b2 { bottom: -14%; right: -14%; animation-delay: -6s; }
+        @keyframes drift { to { transform: translate(70px, 70px) scale(1.18); } }
+
+        /* ===== السبلاش (نفس شاشة العميل) ===== */
+        #splash { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at 50% 45%, #ff2d8f 0%, #f6006f 55%, #c81566 100%); overflow: hidden;
+            animation: splashOut .9s cubic-bezier(.7,0,.3,1) 2.5s forwards; }
+        #splash.skip { animation-delay: 0s; }
+        @keyframes splashOut { to { opacity: 0; transform: scale(1.12); visibility: hidden; } }
+        .bloom { position: relative; width: 300px; height: 300px; }
+        .petal { position: absolute; left: 50%; top: 50%; width: 64px; height: 126px; margin: -126px 0 0 -32px; border-radius: 50%/72% 72% 28% 28%;
+            background: linear-gradient(#fff, #ebe5f3); transform-origin: 50% 100%; opacity: 0; transform: rotate(calc(var(--i)*45deg - 50deg)) scale(0);
+            animation: petal 1.5s cubic-bezier(.2,.9,.3,1.15) forwards; animation-delay: calc(.1s + var(--i)*.07s); }
+        @keyframes petal { 0% { opacity: 0; transform: rotate(calc(var(--i)*45deg - 50deg)) scale(0); } 55% { opacity: .85; } 100% { opacity: .22; transform: rotate(calc(var(--i)*45deg)) scale(1); } }
+        .ring { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 2px solid rgba(255,255,255,.7); opacity: 0; animation: ring 1.8s ease-out 1.1s infinite; }
+        @keyframes ring { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(2.3); } }
+        .splash-logo { position: absolute; left: 50%; top: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 4px solid #fff;
+            background: linear-gradient(135deg, #ff3d96, #f6006f); opacity: 0; transform: scale(.3) rotate(-25deg); box-shadow: 0 0 40px rgba(255,255,255,.55);
+            animation: slogo 1.1s cubic-bezier(.2,1.3,.4,1) .85s forwards; }
+        .splash-logo svg { width: 100%; height: 100%; display: block; }
+        @keyframes slogo { to { opacity: 1; transform: scale(1) rotate(0); } }
+        .word { position: absolute; bottom: 18%; left: 0; right: 0; text-align: center; color: #fff; font-family: 'Josefin Sans', sans-serif; font-weight: 300;
+            letter-spacing: .5em; font-size: .95rem; opacity: 0; animation: word .9s ease 1.7s forwards; }
+        @keyframes word { to { opacity: .95; letter-spacing: .35em; } }
+
+        /* ===== كارت تسجيل الدخول ===== */
+        .stage { position: relative; z-index: 10; width: 100%; padding: 24px 16px; display: flex; justify-content: center; }
+        .card { width: 100%; max-width: 410px; background: #fff; border-radius: 32px; padding: 0 32px 30px; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 40px 90px rgba(100,0,50,.5), 0 0 0 1px rgba(255,255,255,.6);
+            opacity: 0; transform: translateY(70px) scale(.9); animation: cardIn 1.1s cubic-bezier(.2,1,.3,1) 2.75s forwards; }
+        .card.skip { animation-delay: .05s; }
+        @keyframes cardIn { to { opacity: 1; transform: none; } }
+        .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 118px; border-radius: 32px 32px 0 0;
+            background: linear-gradient(135deg, #ff3d96 0%, #f6006f 100%); }
+        .card::after { content: ""; position: absolute; top: 84px; left: -25%; right: -25%; height: 70px; background: #fff; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+        .badge { position: relative; z-index: 2; width: 104px; height: 104px; margin: 38px auto 6px; border-radius: 50%; background: linear-gradient(135deg, #ff3d96, #f6006f);
+            border: 5px solid #fff; box-shadow: 0 14px 30px rgba(246,0,111,.42); animation: float 4.5s ease-in-out infinite; }
+        .badge svg { width: 100%; height: 100%; display: block; }
+        @keyframes float { 50% { transform: translateY(-6px); } }
+        .brand { position: relative; z-index: 2; font-family: 'Josefin Sans', sans-serif; font-weight: 600; font-size: 1.55rem; letter-spacing: .3em; text-transform: uppercase;
+            color: var(--pk); margin: 14px 0 2px; padding-inline-start: .3em; line-height: 1.2; }
+        .sub { position: relative; z-index: 2; margin: 0 0 26px; font-size: .88rem; font-weight: 700; color: rgba(58,10,36,.6); }
+
+        form { position: relative; z-index: 2; text-align: right; }
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: .78rem; font-weight: 800; color: var(--pk-dark); margin: 0 4px 6px; }
+        .control { position: relative; }
+        .control > svg.ico { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--pk); pointer-events: none; }
+        input { width: 100%; height: 52px; background: #fff5f9; border: 1.5px solid rgba(246,0,111,.2); border-radius: 16px; padding: 0 46px; color: var(--ink);
+            font-family: 'Cairo', sans-serif; font-size: .95rem; font-weight: 600; outline: none; transition: border-color .25s, box-shadow .25s, background .25s; }
+        input::placeholder { color: rgba(58,10,36,.38); font-weight: 400; }
+        input:focus { border-color: var(--pk); background: #fff; box-shadow: 0 0 0 4px rgba(246,0,111,.13); }
+        input[type=email] { direction: ltr; text-align: left; padding-left: 16px; padding-right: 46px; }
+        input[type=email]::placeholder { direction: rtl; text-align: right; }
+        #password { padding-left: 46px; }
+        .eye { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; color: rgba(58,10,36,.5); cursor: pointer; border-radius: 12px; display: grid; place-items: center; }
+        .eye:hover { color: var(--pk); background: var(--pk-soft); }
+        .eye svg { width: 20px; height: 20px; }
+
+        .login-btn { width: 100%; height: 54px; margin-top: 8px; border: 0; border-radius: 16px; cursor: pointer; color: #fff; font-family: 'Cairo', sans-serif; font-weight: 900; font-size: 1.02rem;
+            background: linear-gradient(135deg, #ff3d96, #f6006f); box-shadow: 0 12px 26px rgba(246,0,111,.42); display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform .2s, filter .2s, box-shadow .2s; }
+        .login-btn:hover { transform: translateY(-2px); filter: brightness(1.06); box-shadow: 0 16px 30px rgba(246,0,111,.5); }
+        .login-btn:active { transform: translateY(0) scale(.99); }
+        .login-btn:disabled { opacity: .85; cursor: wait; transform: none; }
+        .login-btn svg { width: 20px; height: 20px; }
+        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #error-msg { display: none; margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: #fff0f3; border: 1px solid rgba(200,0,47,.25); color: #b0002a; font-size: .85rem; font-weight: 700; text-align: center; }
+        .secure { position: relative; z-index: 2; margin: 22px 0 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: .74rem; font-weight: 700; color: rgba(58,10,36,.45); }
+        .secure svg { width: 14px; height: 14px; }
+
+        /* دخول متتابع لعناصر الكارت */
+        .badge, .brand, .sub, .field, .login-btn, .secure { opacity: 0; animation: rise .7s cubic-bezier(.2,1,.3,1) forwards; }
+        .badge { animation-delay: 3.0s; } .brand { animation-delay: 3.1s; } .sub { animation-delay: 3.2s; }
+        .field:nth-of-type(1) { animation-delay: 3.3s; } .field:nth-of-type(2) { animation-delay: 3.4s; }
+        .login-btn { animation-delay: 3.5s; } .secure { animation-delay: 3.6s; }
+        .card.skip .badge, .card.skip .brand, .card.skip .sub, .card.skip .field, .card.skip .login-btn, .card.skip .secure { animation-delay: .1s; }
+        @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+        .badge { animation: rise .7s cubic-bezier(.2,1,.3,1) 3.0s forwards, float 4.5s ease-in-out 3.7s infinite; }
+        .card.skip .badge { animation-delay: .1s, .8s; }
+
+        @media (max-width: 420px) { .card { padding: 0 22px 26px; border-radius: 28px; } .brand { font-size: 1.3rem; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; animation-delay: 0s !important; } }
+    </style>
+</head>
+<body>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="bb-mark" viewBox="82 75 360 360"><path d="M155 113h14c19 12 24 27 24 47v168c0 30 14 49 33 62-40 1-71-24-71-65z" fill="#fff"/>
+<path d="M203 134h49c29 0 44 16 44 37s-15 37-44 37h-49" fill="none" stroke="#fff" stroke-width="26" stroke-linejoin="round"/>
+<path d="M205 236h57c31 0 47 22 47 56 0 44-27 84-77 84-16 0-28-8-34-19" fill="none" stroke="#fff" stroke-width="26" stroke-linejoin="round"/>
+<path d="M207 262c33 0 55 18 55 44 0 22-15 36-34 36-16 0-21-17-21-42z" fill="#d6d9ea" stroke="#f6006f" stroke-width="4" stroke-linejoin="round"/>
+<path d="M336.7 168.0V165.4H341.3V134.6H336.7V132.0H365.7V140.0H362.7V135.0H346.2V147.0H358.0V142.5H360.9V154.5H358.0V150.0H346.2V165.0H363.1V160.0H366.1V168.0Z M339.7 238.3V230.1L342.4 230.1Q342.6 234.2 344.8 236.2Q347.1 238.1 351.7 238.1Q356.0 238.1 358.2 236.4Q360.5 234.7 360.5 231.5Q360.5 228.9 359.1 227.5Q357.8 226.1 353.4 224.7L348.6 223.3Q343.5 221.7 341.3 219.4Q339.2 217.1 339.2 213.0Q339.2 208.4 342.5 205.9Q345.7 203.3 351.6 203.3Q354.1 203.3 357.1 203.9Q360.1 204.4 363.5 205.5V213.1H360.8Q360.4 209.3 358.2 207.6Q356.1 205.9 351.7 205.9Q347.9 205.9 345.9 207.5Q343.9 209.0 343.9 212.0Q343.9 214.6 345.4 216.1Q346.9 217.5 351.8 219.0L356.2 220.3Q361.1 221.8 363.2 224.0Q365.3 226.3 365.3 230.2Q365.3 235.4 361.9 238.0Q358.6 240.7 352.0 240.7Q349.0 240.7 345.9 240.1Q342.8 239.5 339.7 238.3Z M344.1 299.0H357.3L350.7 281.8ZM333.9 312.0V309.4H337.0L349.9 276.0H353.9L366.8 309.4H370.3V312.0H357.2V309.4H361.2L358.2 301.5H343.1L340.1 309.4H344.0V312.0Z M332.8 384.0V381.4H337.7V350.6H332.8V348.0H342.0L363.6 376.4V350.6H358.8V348.0H371.4V350.6H366.6V384.7H363.7L340.6 354.4V381.4H345.5V384.0Z" fill="#fff"/></symbol>
+    </svg>
+
+    <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div></div>
+
+    <div id="splash" aria-hidden="true">
+        <div class="bloom">
+            <span class="petal" style="--i:0"></span><span class="petal" style="--i:1"></span><span class="petal" style="--i:2"></span><span class="petal" style="--i:3"></span>
+            <span class="petal" style="--i:4"></span><span class="petal" style="--i:5"></span><span class="petal" style="--i:6"></span><span class="petal" style="--i:7"></span>
+            <span class="ring"></span>
+            <div class="splash-logo"><svg><use href="#bb-mark"/></svg></div>
+        </div>
+        <div class="word">BESAN BEAUTY</div>
+    </div>
+
+    <main class="stage">
+        <section class="card" id="card" aria-label="تسجيل الدخول">
+            <div class="badge"><svg role="img" aria-label="Besan Beauty"><use href="#bb-mark"/></svg></div>
+            <div class="brand">Besan Beauty</div>
+            <p class="sub">بوابة الوصول للوحة الإدارة</p>
+
+            <form onsubmit="event.preventDefault(); login();" novalidate>
+                <div class="field">
+                    <label for="email">البريد الإلكتروني</label>
+                    <div class="control">
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7.5 8 6 8-6"/></svg>
+                        <input type="email" id="email" placeholder="name@email.com" autocomplete="username" inputmode="email" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="password">كلمة المرور</label>
+                    <div class="control">
+                        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15.5" r="1.2" fill="currentColor"/></svg>
+                        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+                        <button type="button" class="eye" id="eye" aria-label="إظهار كلمة المرور" onclick="togglePw()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn"><span>تسجيل الدخول</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m11 6-6 6 6 6"/></svg>
+                </button>
+            </form>
+            <div id="error-msg" role="alert"></div>
+            <div class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>اتصال آمن ومشفّر</div>
+        </section>
+    </main>
+    <script>
+        const supabaseUrl = APP_CONFIG.SUPABASE_URL;
+const supabaseKey = APP_CONFIG.SUPABASE_ANON_KEY; 
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const adminRedirectPath = 'admin.html';
+
+        // إخفاء المحتوى مبدئياً لتجنب الوميض إذا كان المستخدم مسجلاً دخوله بالفعل
+        document.body.style.opacity = '0';
+
+        async function checkExistingSession() {
+            try {
+                const { data: { session }, error } = await _supabase.auth.getSession();
+                if (!error && session?.user) {
+                    window.location.replace(adminRedirectPath);
+                } else {
+                    // إظهار الصفحة فقط إذا لم يكن هناك جلسة نشطة
+                    document.body.style.opacity = '1';
+                }
+            } catch (err) {
+                console.warn('Session check failed:', err);
+                document.body.style.opacity = '1'; // إظهار الصفحة في حالة حدوث خطأ
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.querySelector('.login-btn');
+            const errorBox = document.getElementById('error-msg');
+            const originalContent = btn.innerHTML;
+
+            errorBox.style.display = 'none';
+            errorBox.innerText = '';
+            btn.disabled = true;
+            btn.innerHTML = '<span>جاري الدخول...</span><div class="spinner"></div>';
+
+            try {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    throw error;
+                }
+                if (data?.session?.user) {
+                    window.location.replace(adminRedirectPath);
+                } // No change needed here, this is the login page.
+            } catch (error) {
+                const message = error?.message === 'Invalid login credentials'
+                    ? 'بيانات الدخول غير صحيحة'
+                    : (error?.message || 'حدث خطأ أثناء تسجيل الدخول');
+                errorBox.innerText = 'خطأ: ' + message;
+                errorBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkExistingSession);
+    
+        function togglePw() {
+            const i = document.getElementById('password');
+            const show = i.type === 'password';
+            i.type = show ? 'text' : 'password';
+            document.getElementById('eye').setAttribute('aria-label', show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+        }
+        // تخطي السبلاش بالضغط عليه
+        document.getElementById('splash').addEventListener('click', function () {
+            this.classList.add('skip'); document.getElementById('card').classList.add('skip');
+        });
+    </script>
+</body>
+</html>
