@@ -3632,7 +3632,7 @@ async function loadAllData() {
     try {
         const [orders, msgs] = await Promise.all([
             fetchAll('orders', '*', 'created_at', false),
-            fetchAll('messages', 'customer_phone,sender,text,created_at,client_id,order_id', 'created_at', true)
+            fetchAll('messages', 'customer_phone,sender,text,created_at,client_id,order_id,order_link', 'created_at', true)
         ]);
         allOrders = orders;
         customersMap = null;
@@ -3640,7 +3640,7 @@ async function loadAllData() {
         msgs.forEach(m => {
             const p = cleanPhone(m.customer_phone);
             if (!msgCache.has(p)) msgCache.set(p, []);
-            msgCache.get(p).push({ sender: m.sender, text: m.text, created_at: m.created_at, cid: m.client_id, order_id: m.order_id });
+            msgCache.get(p).push({ sender: m.sender, text: m.text, created_at: m.created_at, cid: m.client_id, order_id: m.order_id, order_link: m.order_link });
             if (m.client_id) seenCids.add(m.client_id);
         });
         mergeAdminOutboxIntoCache();
@@ -3700,7 +3700,7 @@ function bubbleEl(m) {
     const time = document.createElement('small');
     time.style.cssText = 'display:block;font-size:.65rem;opacity:.6;margin-top:3px;';
     time.textContent = fmtClock(m.created_at);
-    if (m.tag && m.order_id) { const tg = document.createElement('small'); tg.style.cssText = 'display:inline-block;font-size:.65rem;font-weight:700;background:rgba(246,0,111,.12);border-radius:8px;padding:1px 6px;margin-bottom:3px;'; tg.textContent = 'طلب #' + m.order_id; d.append(tg); }
+    if (m.tag && m.order_id) { const tg = document.createElement('small'); tg.style.cssText = 'display:inline-block;font-size:.65rem;font-weight:700;background:rgba(246,0,111,.12);border-radius:8px;padding:1px 6px;margin-bottom:3px;'; tg.textContent = 'طلب #' + m.order_id + (m.order_link === 'inferred' ? ' (تقديري، رسالة قديمة)' : ''); d.append(tg); }
     d.append(t, time);
     return d;
 }
