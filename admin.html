@@ -2032,7 +2032,7 @@ tr:hover { background: rgba(246, 0, 111, 0.05); }
         }
 #bulk-status-select option {
             background-color: #ffffff; 
-            color: white;
+            color: #3a0a24;
         }
 .scroll-top-btn {
             position: fixed;
@@ -2318,7 +2318,7 @@ input, textarea, select { user-select: text !important; caret-color: #f6006f !im
 
     /* ================= الطلبات: كارت الأوردر ================= */
     #orders-table-body tr.order-row {
-        display: grid; grid-template-columns: auto 1fr 1fr auto;
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-template-areas:
             "chk   id    id    status"
             "name  name  name  name"
@@ -2601,6 +2601,22 @@ input, textarea, select { user-select: text !important; caret-color: #f6006f !im
 .social-icon-link i { display: block; line-height: 1 !important; font-size: 1.15rem !important; }
 .dev-card-wrapper .social-icon-link { font-size: 1.15rem !important; overflow: hidden; }
 
+@media (max-width: 768px) {
+    #orders-section .table-wrapper { background: transparent !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; }
+    #orders-table-body tr.order-row { background: #fff !important; }
+    #orders-table-body tr.order-row > td:nth-child(4) { color: #3a0a24 !important; }
+    #orders-table-body tr.order-row > td:nth-child(11), #orders-table-body tr.order-row > td:nth-child(12) { white-space: nowrap; }
+    #orders-table-body tr.order-row > td:nth-child(11) { justify-self: end; }
+    #orders-table-body tr.order-row > td:nth-child(12) { justify-self: end; }
+}
+@media (max-width: 768px) {
+    #orders-table-body tr.order-row > td:nth-child(5) { padding-inline-end: 14px !important; overflow: hidden; white-space: nowrap; }
+    #orders-table-body tr.order-row > td:nth-child(6) { display: flex !important; flex-wrap: wrap; align-items: center; justify-content: flex-start !important; column-gap: 8px; overflow: hidden; white-space: nowrap; padding-inline-start: 14px !important; }
+    #orders-table-body tr.order-row > td:nth-child(6)::before { flex: 0 0 100%; }
+    #orders-table-body tr.order-row > td:nth-child(6) .wa-link { order: 2; margin: 0 !important; flex: none; line-height: 1; font-size: 1.25rem; position: static !important; }
+}
+#reports-section .card.report-view { background: transparent !important; box-shadow: none !important; border: 0 !important; padding: 0 !important; backdrop-filter: none !important; }
+#reports-section .card.report-view > h3 { color: #fff !important; border-bottom: 1px solid rgba(255,255,255,.55) !important; }
 .report-view .table-wrapper:has(tbody:empty) { display: none !important; }
 </style>
 <style>html,body{background:linear-gradient(160deg,#fff 0%,#ffe9f2 55%,#ebe5f3 100%) fixed!important;color:#3a0a24}body::before,body::after{background:none!important}</style><style>.main-content{background:rgba(255,255,255,.35)!important}</style><style>:root{--primary:#f6006f;--secondary:#c81566}html,body{background:linear-gradient(160deg,#fff 0%,#ffe9f2 55%,#ebe5f3 100%) fixed!important}.main-content{background:rgba(255,255,255,.35)!important}
@@ -3367,7 +3383,7 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                 <span style="font-weight: bold; color: #f6006f; white-space: nowrap;"><i class="bi bi-check2-all"></i> (<span id="selected-count">0</span>) طلب:</span>
                 
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: 1;">
-                    <select id="bulk-status-select" style="background: rgba(246,0,111,0.07); color: white; border: 1px solid #f6006f; padding: 5px 10px; border-radius: 8px; outline: none; height: 34px; font-size: 0.8rem;">
+                    <select id="bulk-status-select" style="background: #fff; color: #3a0a24; font-weight: 700; border: 1px solid #f6006f; padding: 5px 10px; border-radius: 8px; outline: none; height: 34px; font-size: 0.8rem;">
                         <option value="">تغيير الحالة...</option>
                         <option value="shipping">جاري الشحن</option>
                         <option value="shipped">تم الشحن</option>
@@ -3735,7 +3751,7 @@ function updateStats(all) {
     const by = s => data.filter(o => o.status === s).length;
     setText('stat-awaiting', all.filter(o => o.status === 'awaiting_payment').length);
     updatePayBar();
-    setText('stat-total', data.length);
+    setText('stat-total', all.length);   // كل الطلبات بما فيها في انتظار تأكيد الدفع (الإيراد والمبيعات لسه من الطلبات المؤكدة بس)
     setText('stat-pending', by('pending'));
     setText('stat-shipping', by('shipping'));
     setText('stat-shipped', by('shipped'));
