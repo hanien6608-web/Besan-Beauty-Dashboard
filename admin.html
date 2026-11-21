@@ -3033,6 +3033,12 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                                 <button class="chat-filter-tab" data-filter="empty" onclick="setChatFilter('empty', this)"><i class="bi bi-chat-left-text"></i> بلا رسائل</button>
                             </div>
                         </div>
+                        <div id="chat-select-bar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 10px;">
+                            <button type="button" class="btn-burgundy" id="chat-select-toggle" onclick="toggleChatSelectMode()"><i class="bi bi-check2-square"></i> تحديد</button>
+                            <label id="chat-select-all-wrap" style="display:none;gap:4px;align-items:center;font-weight:700;font-size:.8rem;"><input type="checkbox" id="chat-select-all" onchange="chatSelectAll(this.checked)"> تحديد الكل</label>
+                            <span id="chat-select-count" style="display:none;font-size:.8rem;"></span>
+                            <button type="button" class="btn-burgundy" id="chat-bulk-delete" style="display:none;" onclick="deleteSelectedChats()"><i class="bi bi-trash3"></i> مسح المحدد</button>
+                        </div>
                         <div id="chat-list-scroll" class="chat-list-scroll">
                             <!-- سيتم ملء كروت الشاتات هنا -->
                             <div style="text-align: center; padding: 50px 10px; color: rgba(58,10,36,0.5);">
@@ -3337,6 +3343,7 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
                             <th style="width: 60px;">
                                 <div class="table-check-wrapper" onclick="const chk = document.getElementById('select-all-orders'); chk.checked = !chk.checked; toggleAllCheckboxes(chk);">
                                     <input type="checkbox" id="select-all-orders" onclick="event.stopPropagation(); toggleAllCheckboxes(this)">
+                                    <span style="font-size:.7rem;font-weight:700;display:block;white-space:nowrap;">تحديد الكل</span>
                                 </div>
                             </th>
                             <th class="sortable" onclick="sortBy('id')">رقم الطلب <i class="bi bi-hash"></i></th>
@@ -3985,9 +3992,12 @@ function renderChatList() {
         list.innerHTML = '<div style="text-align:center;padding:50px 10px;color:rgba(58,10,36,0.5);"><i class="bi bi-chat-square-dots" style="font-size:2.5rem;display:block;margin-bottom:10px;opacity:.5;"></i>لا توجد محادثات</div>';
         return;
     }
+    chatVisiblePhones = rows.map(r => r.c.phone);
+    chatSelUpdate();
     list.innerHTML = rows.map(({ c, last, unread }) => {
         const preview = last ? (last.sender === 'user' ? '' : 'أنتِ: ') + last.text : 'لا توجد رسائل بعد';
-        return `<div class="chat-item-card${c.phone === slots.hub.phone ? ' active' : ''}" onclick="openHubChat('${c.phone}')">
+        const chk = chatSelectMode ? `<input type="checkbox" class="chat-sel" data-phone="${esc(c.phone)}" ${chatSelected.has(c.phone) ? 'checked' : ''} onclick="event.stopPropagation(); chatToggleOne(this)" style="width:20px;height:20px;flex:none;margin-inline-end:8px;">` : '';
+        return `<div class="chat-item-card${c.phone === slots.hub.phone ? ' active' : ''}" onclick="${chatSelectMode ? `chatCardTap('${c.phone}')` : `openHubChat('${c.phone}')`}">${chk}
             <div class="customer-avatar-circle">${esc((c.name || '؟').trim().charAt(0) || '؟')}</div>
             <div class="chat-item-info">
                 <div class="chat-item-top"><span class="chat-item-name">${esc(c.name)}</span><span class="chat-item-time">${last ? fmtListTime(last.created_at) : ''}</span></div>
@@ -3997,6 +4007,38 @@ function renderChatList() {
     }).join('');
 }
 
+let chatSelectMode = false, chatVisiblePhones = [];
+const chatSelected = new Set();
+function chatSelUpdate() {
+    const n = chatSelected.size;
+    const show = (id, on, d) => { const e = document.getElementById(id); if (e) e.style.display = on ? (d || '') : 'none'; };
+    show('chat-select-all-wrap', chatSelectMode, 'flex'); show('chat-select-count', chatSelectMode); show('chat-bulk-delete', chatSelectMode && n > 0);
+    setText('chat-select-count', n + ' محدد');
+    const all = document.getElementById('chat-select-all');
+    if (all) all.checked = chatVisiblePhones.length > 0 && chatVisiblePhones.every(p => chatSelected.has(p));
+    const t = document.getElementById('chat-select-toggle'); if (t) t.innerHTML = chatSelectMode ? '<i class="bi bi-x-lg"></i> إلغاء التحديد' : '<i class="bi bi-check2-square"></i> تحديد';
+}
+function toggleChatSelectMode() { chatSelectMode = !chatSelectMode; chatSelected.clear(); renderChatList(); }
+function chatToggleOne(cb) { if (cb.checked) chatSelected.add(cb.dataset.phone); else chatSelected.delete(cb.dataset.phone); chatSelUpdate(); }
+function chatCardTap(phone) { if (chatSelected.has(phone)) chatSelected.delete(phone); else chatSelected.add(phone); renderChatList(); }
+function chatSelectAll(on) { chatVisiblePhones.forEach(p => on ? chatSelected.add(p) : chatSelected.delete(p)); renderChatList(); }
+async function deleteSelectedChats() {
+    const phones = Array.from(chatSelected).filter(p => chatVisiblePhones.includes(p));
+    if (!phones.length) return;
+    if (!confirm(`هل أنتِ متأكدة من مسح محادثات ${phones.length} عميل؟ سيتم حذفها من الطرفين.`)) return;
+    try {
+        const { error } = await _supabase.from('messages').delete().in('customer_phone', phones);
+        if (error) throw error;
+        phones.forEach(phone => {
+            allOrders.filter(o => cleanPhone(o.customer_phone) === cleanPhone(phone)).forEach(o => {
+                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} });
+            });
+        });
+        chatSelected.clear(); chatSelectMode = false;
+        alert('تم مسح المحادثات المحددة بنجاح! ✨');
+        loadAllData();
+    } catch (err) { alert('حدث خطأ: ' + err.message); }
+}
 function filterChatList() { renderChatList(); }
 function setChatFilter(f, btn) {
     currentChatFilter = f;
