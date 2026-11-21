@@ -3859,7 +3859,7 @@ async function sendReply(slot) {
     input.value = '';
     input.focus();
 
-    const re = rtChans.get(orderId); if (re) re.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: false, sender: 'admin' } });
+    try { _supabase.rpc('admin_notify', { p_order: Number(orderId), p_event: 'typing', p_payload: { typing: false, sender: 'admin' } }); } catch (e) {}
     const cid = newMsgId();
     addMessage(phone, 'admin', text, null, true, cid, true, orderId);   // يظهر فوراً (باهت لحد ما يتأكد إنه اتحفظ)
 
@@ -3925,7 +3925,7 @@ async function deleteFullChat(slot) {
     if (!phone) return;
     if (!s.orderId) { alert('اختاري الطلب اللي عايزة تمسحي محادثته الأول.'); return; }
     if (!confirm('هل أنتِ متأكدة؟ سيتم مسح محادثة الطلب #' + s.orderId + ' نهائياً.')) return;
-    const de = rtChans.get(s.orderId); if (de) de.ch.send({ type: 'broadcast', event: 'delete_chat', payload: {} });
+    try { await _supabase.rpc('admin_notify', { p_order: Number(s.orderId), p_event: 'delete_chat', p_payload: {} }); } catch (e) {}
     const { error } = await _supabase.from('messages').delete().eq('order_id', Number(s.orderId));
     if (error) return alert('خطأ أثناء الحذف: ' + error.message);
     await loadAllData();
@@ -4545,7 +4545,7 @@ async function initApp() {
             const e = slots[k].orderId && rtChans.get(slots[k].orderId);
             if (e && Date.now() - lastTypingSent > 1500) {
                 lastTypingSent = Date.now();
-                e.ch.send({ type: 'broadcast', event: 'typing', payload: { typing: true, sender: 'admin' } });
+                _supabase.rpc('admin_notify', { p_order: Number(slots[k].orderId), p_event: 'typing', p_payload: { typing: true, sender: 'admin' } });
             }
         });
     });
@@ -5171,8 +5171,7 @@ async function applyBulkDeleteChats() {
 
         selectedPhones.forEach(phone => {
             allOrders.filter(o => cleanPhone(o.customer_phone) === cleanPhone(phone)).forEach(o => {
-                const ch = _supabase.channel('order_chat_' + o.id, { config: { private: true } });
-                ch.subscribe(st => { if (st === 'SUBSCRIBED') { ch.send({ type: 'broadcast', event: 'delete_chat', payload: {} }); setTimeout(() => _supabase.removeChannel(ch), 500); } });
+                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} });
             });
         });
         alert("تم مسح المحادثات المحددة بنجاح! ✨");
