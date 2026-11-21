@@ -2939,6 +2939,10 @@ footer .dev-card-wrapper{width:max-content!important;max-width:100%}
 .pam-rows>div{display:flex;justify-content:space-between;gap:8px}.pam-rows .pam-dep{font-weight:900}
 .pam-body p{margin:6px 0 0;font-size:.8rem}
 .pam-timer{margin-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:8px 10px;color:#3730a3}
+.pay-wait-row{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.pay-wait-row>.pay-state,.pay-wait-row>.pam-timer{margin:0}
+.pay-wait-row>.pam-timer{justify-content:center;gap:10px;text-align:center}
+@media (min-width:769px){.pay-wait-row{flex-direction:row;align-items:stretch;justify-content:space-between}.pay-wait-row>.pay-state{flex:1 1 auto}.pay-wait-row>.pam-timer{flex:0 0 auto;justify-content:space-between}}
 .pam-timer b{font-size:1.05rem;letter-spacing:1px;direction:ltr;font-variant-numeric:tabular-nums}.pam-timer.low b{color:#dc2626}
 .pay-panel-rows{display:flex;flex-direction:column;gap:4px;font-size:.82rem;margin-bottom:8px}
 .pay-panel-rows>div{display:flex;justify-content:space-between}
@@ -4336,8 +4340,8 @@ function payStateHTML(o) {
         if (o.receipt_path) return `<div class="pay-state st-review"><i class="bi bi-receipt"></i> إيصال مرفوع — محتاج مراجعتك وتأكيدك</div>`;
         // عرض مختصر للأدمن: التفاصيل الكاملة موجودة في بيانات الطلب، والرسالة الكاملة متخزنة وبتوصل للعميلة زي ما هي
         const tsc = o.created_at ? Date.parse(o.created_at) : NaN;
-        const cd = isNaN(tsc) ? '' : `<div class="pam-timer" style="margin:0 0 8px"><span>مهلة الـ72 ساعة (للتذكير)</span><b class="pay-countdown" data-end="${tsc + 72 * 3600 * 1000}">--:--:--</b></div>`;
-        return `<div class="pay-state st-wait"><i class="bi bi-hourglass-split"></i> لم يتم رفع الإيصال</div>${cd}`;
+        const cd = isNaN(tsc) ? '' : `<div class="pam-timer"><span>مهلة الـ72 ساعة (للتذكير)</span><b class="pay-countdown" data-end="${tsc + 72 * 3600 * 1000}">--:--:--</b></div>`;
+        return `<div class="pay-wait-row"><div class="pay-state st-wait"><i class="bi bi-hourglass-split"></i> لم يتم رفع الإيصال</div>${cd}</div>`;
     }
     if (o.status === 'expired') return `<div class="pay-state st-exp"><i class="bi bi-clock-history"></i> انتهت المهلة بدون إيصال</div>`;
     if (o.status === 'rejected') return `<div class="pay-state st-rej"><i class="bi bi-x-octagon-fill"></i> تم رفض الإيصال${o.payment_note ? ' — ' + esc(o.payment_note) : ''}</div>`;
