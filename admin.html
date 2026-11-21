@@ -2601,6 +2601,12 @@ input, textarea, select { user-select: text !important; caret-color: #f6006f !im
 .social-icon-link i { display: block; line-height: 1 !important; font-size: 1.15rem !important; }
 .dev-card-wrapper .social-icon-link { font-size: 1.15rem !important; overflow: hidden; }
 
+#orders-section .table-check-wrapper { background: #fff !important; border: 2px solid #f6006f !important; }
+#orders-section .table-check-wrapper input { -webkit-appearance: none; appearance: none; background: #fff; opacity: 1; position: relative; border-radius: 6px; }
+#orders-section .table-check-wrapper input:checked::after { content: ''; position: absolute; left: 32%; top: 10%; width: 28%; height: 52%; border: solid #f6006f; border-width: 0 3px 3px 0; transform: rotate(45deg); }
+@media (max-width: 768px) {
+    #orders-section .table-wrapper thead th:first-child > div:last-child { color: #fff !important; }
+}
 @media (max-width: 768px) {
     #orders-section .table-wrapper { background: transparent !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; }
     #orders-table-body tr.order-row { background: #fff !important; }
