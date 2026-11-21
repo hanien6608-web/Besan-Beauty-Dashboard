@@ -4035,9 +4035,9 @@ async function deleteFullChat(slot) {
     if (!phone) return;
     if (!s.orderId) { alert('اختاري الطلب اللي عايزة تمسحي محادثته الأول.'); return; }
     if (!confirm('هل أنتِ متأكدة؟ سيتم مسح محادثة الطلب #' + s.orderId + ' نهائياً.')) return;
-    try { await _supabase.rpc('admin_notify', { p_order: Number(s.orderId), p_event: 'delete_chat', p_payload: {} }); } catch (e) {}
     const { error } = await _supabase.from('messages').delete().eq('order_id', Number(s.orderId));
     if (error) return alert('خطأ أثناء الحذف: ' + error.message);
+    try { await _supabase.rpc('admin_notify', { p_order: Number(s.orderId), p_event: 'delete_chat', p_payload: {} }); } catch (e) {}
     await loadAllData();
 }
 
@@ -4135,7 +4135,7 @@ async function deleteSelectedChats() {
         if (error) throw error;
         phones.forEach(phone => {
             allOrders.filter(o => cleanPhone(o.customer_phone) === cleanPhone(phone)).forEach(o => {
-                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} });
+                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} }).then(() => {}, () => {});
             });
         });
         chatSelected.clear(); chatSelectMode = false;
@@ -5315,7 +5315,7 @@ async function applyBulkDeleteChats() {
 
         selectedPhones.forEach(phone => {
             allOrders.filter(o => cleanPhone(o.customer_phone) === cleanPhone(phone)).forEach(o => {
-                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} });
+                _supabase.rpc('admin_notify', { p_order: Number(o.id), p_event: 'delete_chat', p_payload: {} }).then(() => {}, () => {});
             });
         });
         alert("تم مسح المحادثات المحددة بنجاح! ✨");
