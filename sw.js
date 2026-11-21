@@ -1,5 +1,5 @@
 // Service Worker — Besan Beauty (لوحة الإدارة)
-const CACHE_NAME = 'besan-admin-shell-v26';
+const CACHE_NAME = 'besan-admin-shell-v27';
 const APP_START = './admin.html';
 const SHELL_FILES = [
   './',
@@ -73,6 +73,8 @@ self.addEventListener('push', (event) => {
     badge: './badge-96.png',
     tag: data.tag || ('besan-admin-' + Date.now()),
     renotify: true,
+    vibrate: data.type === 'order' ? [600, 200, 600, 200, 600, 200, 600, 200, 600] : [300, 100, 300],
+    requireInteraction: data.type === 'order',
     data: { url: data.url || APP_START, type: data.type || '', phone: data.phone || '', orderId: data.orderId || null }
   }));
 });
